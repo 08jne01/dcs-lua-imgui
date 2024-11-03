@@ -2,7 +2,7 @@
 
 Very early prototype of a Lua Only ImGui Library for DCS World. This lets you create complex GUI's for DCS world from only lua devices!
 
-![image](complete-example.png)
+![image](examples/images/complete-example.png)
 
 ## Installation
 
