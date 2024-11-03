@@ -77,7 +77,7 @@ function ImGui.Serialize(t, depth, seen)
 
     depth = depth or 0
 
-    if depth > 10 then
+    if depth > 100 then
         return "..."
     end
 
@@ -89,7 +89,9 @@ function ImGui.Serialize(t, depth, seen)
     local strings = {}
     for i,v in pairs(t) do
         if type(v) == 'table' then
-            table.insert(strings, next_space..i.." = "..ImGui.Serialize(t, depth + 1, seen))
+            table.insert(strings, next_space..i.." = "..ImGui.Serialize(v, depth + 1, seen))
+        elseif type(v) == 'string' then
+            table.insert(strings, next_space..i..string.format(" = \"%s\"", v))
         else
             table.insert(strings, next_space..i.." = "..tostring(v))
         end
