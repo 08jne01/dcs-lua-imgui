@@ -1,6 +1,8 @@
-# (Super WIP)
+# LuaImGui for DCS (Super WIP)
 
-Very early prototype of a Lua Only ImGui Library for DCS World.
+Very early prototype of a Lua Only ImGui Library for DCS World. This lets you create complex GUI's for DCS world from only lua devices!
+
+![image](complete-example.png)
 
 ## Installation
 

@@ -80,6 +80,29 @@ ImGui.AddItem("Menu Name", "Menu Entry Name", function()
         end
     end)
 
+    -- ImGui:Window lets you create a floating window from the current window. 
+    -- It will only show if the control code it is in is active (ie tree/header open or window is open). 
+    -- This lets you build complex pop outs which depend on other windows.
+    ImGui:Tree("Popout Window", function()
+        ImGui:Text("Window Popped Out!")
+        ImGui:Window("Window!", function() 
+            ImGui:Text("This is a window...")
+        end)
+    end)
+
+    -- note . 
+    -- not :
+    local s = ImGui.Serialize({
+        plane = "A-4E",
+        planet = "Earth",
+        another_table = {
+            hello = 5,
+            world = "something"
+        }
+    })
+
+    ImGui:Text(s)
+
 end)
 
 -- Just for illustration that this is a normal device.
