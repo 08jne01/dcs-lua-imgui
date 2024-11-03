@@ -1,7 +1,12 @@
 local dev = GetSelf()
 
--- You need to copy the ImGui.lua from lua/ into your Cockpit/Scripts
-dofile(LockOn_Options.script_path.."ImGui.lua")
+-- Set the package path to be the script path. This lets you use require
+-- statements for any of your lua files which is better than dofile() because
+-- that executes every dofile is called. With require join path folders with a .
+-- Some.Path.To.File
+-- Will result in Some/Path/To/File.lua being loaded.
+package.path = package.path..";"..LockOn_Options.script_path.."?.lua"
+require("LuaImGui.ImGui")
 
 local some_state = {
     hello = "world"

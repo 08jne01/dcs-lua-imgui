@@ -55,8 +55,14 @@ To draw the imgui you need to add items to the imgui context and you need to cal
 ![image](examples/images/add-item.png)
 
 ```lua
--- do at top of file
-dofile(LockOn_Options.script_path.."ImGui.lua")
+-- Set the package path to be the script path. This lets you use require
+-- statements for any of your lua files which is better than dofile() because
+-- that executes every dofile is called.
+-- With require join path folders with a .
+-- Some.Path.To.File
+-- Will result in Some/Path/To/File.lua being loaded.
+package.path = package.path..";"..LockOn_Options.script_path.."?.lua"
+require("LuaImGui.ImGui")
 -- Menu Name is button in the bar across the top.
 -- Menu Entry name is an entry in that menu.
 -- Menus are created automatically as items are assigned to them.
