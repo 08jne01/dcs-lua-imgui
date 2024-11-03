@@ -48,9 +48,9 @@ endif()
 add_subdirectory("ext/minhook")
 
 set_target_properties( LuaImGui PROPERTIES 
-    ARCHIVE_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}/lua"
-    LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}/lua"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lua" )
+    ARCHIVE_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}" )
 
 target_compile_definitions(LuaImGui PRIVATE LUA_BUILD_AS_DLL)
 #target_link_directories( LuaImGui PRIVATE  )
