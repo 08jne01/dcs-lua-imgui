@@ -70,8 +70,11 @@ private:
     void Display();
     void Input( UINT msg, WPARAM w_param, LPARAM l_param );
 
+    // Only accessed from main thread - copied to completed_commands
+    std::unordered_map<lua_State*, std::vector<Command>> commands;
+
 
     std::mutex command_mtx;
-    std::unordered_map<lua_State*, std::vector<Command>> commands;
+    std::unordered_map<lua_State*, std::vector<Command>> completed_commands;
     std::map<std::string, Menu> menus;
 };

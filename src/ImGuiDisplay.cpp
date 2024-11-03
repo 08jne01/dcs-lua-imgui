@@ -18,14 +18,12 @@ void ImguiDisplay::AddImguiItem( const std::string& menu, const std::string& nam
 
 void ImguiDisplay::DisplayHook()
 {
-    std::unique_lock lock( display.command_mtx );
     display.Display();
 }
 
 
 void ImguiDisplay::RefreshDisplay( lua_State* L )
 {
-    std::unique_lock lock( display.command_mtx );
     display.Refresh(L);
 }
 
@@ -86,8 +84,6 @@ void ImguiDisplay::Refresh( lua_State* L )
 
     commands[L].clear();
 
-    /**/
-
     for ( auto& [menu_name, menu] : menus )
     {
         for ( auto& menu_item : menu.items )
@@ -108,12 +104,19 @@ void ImguiDisplay::Refresh( lua_State* L )
             //}
         }
     }
+
+    // Copy to render thread.
+    std::unique_lock lock( display.command_mtx );
+    completed_commands[L] = std::move( commands[L] );
+
 }
 
 void ImguiDisplay::Display()
 {
     if ( error )
         return;
+
+    std::unique_lock lock( display.command_mtx );
 
     if ( ImGui::BeginMainMenuBar() )
     {
@@ -138,7 +141,7 @@ void ImguiDisplay::Display()
 
     int allowed_depth = 0;
 
-    for ( auto& [L, L_commands] : commands )
+    for ( auto& [L, L_commands] : completed_commands )
     {
         for ( auto& c : L_commands )
         {
