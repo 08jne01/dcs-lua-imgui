@@ -4,22 +4,52 @@ Very early prototype of a Lua Only ImGui Library for DCS World.
 
 ## Installation
 
-### Git + Build
+### Git Submodule
 
-```git submodule add <.git link> <path to scripts>```
+Submodules organize this repository into a different git repository so you can easily update and build. This is the suggested install, but requires a git repository already, if you aren't using git (you should) use the [standalone instructions.](#standalone)
 
-### Manual Installation
+1. Open a git terminal from the root of the project (where the Cockpit folder is).
+2. ```git submodule add "https://github.com/08jne01/dcs-lua-imgui.git" Cockpit/Scripts/LuaImGui```
+3. ```git submodule update --init --recursive```
 
-1. Install (either build or ~~download~~) dll at `<your plane>/bin/LuaImGui.dll`
-2. Modify entry.lua to include `binaries = {'LuaImGui'}` if you already have a dll then make a list `binaries = {'otherdll', 'LuaImGui'}`
-3. In device_init.lua (and devices.lua) create a new lua device which releases the ImGui. See examples/ImGuiDevice.lua
-4. Add ImGui code to your devices. See examples below.
+### Standalone
+
+Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio Install).
+
+1. ```git clone "https://github.com/08jne01/dcs-lua-imgui.git" LuaImGui```
+2. ```cd LuaImGui```
+3. ```git submodule update --init --recursive```
+
+### Manual Installation - Binaries
+
+TODO
+
+### Build
+
+1. Open resulting folder in IDE/Command Line of choice, some examples:
+    - Visual Studio:
+        1. ```Project->Configure LuaImGui```
+        2. Select ```LuaImGui.dll``` from play button dropdown.
+        3. Select Release instead of Debug
+        4. Build->Build ALL
+    - VSCode -> with C++ and Cmake extensions:
+        1. In the command pallet run ```CMake: Configure```
+        2. Select x64-release
+        3. In the command pallet run ```CMake: Build```
+    - Command Line - CMake with Ninja (VS Developer Command Prompt):
+        1. ```cmake -G ninja .```
+        2. ```cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_INSTALL_PREFIX=./dcs-lua-imgui/out/install/x64-release -S. -B./out/build/x64-release -G Ninja```
+        3. ```cmake --build out/build/x64-release --parallel 30```
+
+2. Copy LuaImGui folder to Cockpit/Scripts (if it isn't there)
 
 ## Examples
 
 ### Creating Windows
 
 To draw the imgui you need to add items to the imgui context and you need to call Refresh to update the imgui windows. See below.
+
+![image](examples/images/add-item.png)
 
 ```lua
 -- do at top of file
@@ -38,10 +68,12 @@ end)
 function update()
     ImGui.Refresh()
 end
-
 ```
 
+
 ### Immediate Drawing
+
+![image](examples/images/text.png)
 
 ```lua
 -- This simply prints Text! to the imgui window
@@ -51,6 +83,8 @@ ImGui:Text("Text!")
 ```
 
 #### Capturing State
+
+![image](examples/images/capture-state.png)
 
 ```lua
 -- Outside the AddItem code
@@ -73,6 +107,8 @@ end)
 
 #### Tables
 
+![image](examples/images/table.png)
+
 ```lua
 -- You can write Tables (not lua tables) to organize your data.
 -- The first row is the header this determins the number of columns
@@ -94,9 +130,13 @@ Any ImGui functions which control flow will take a function this is because DCS 
 
 This has the side-effect of requiring that all code within the imgui statements to be executed. So any control flow functions that take a function will execute that function regardless of the state of the control flow.
 
+These statements can be combined recursively and with the [Immediate Drawing](#immediate-drawing) imgui commands. To create complex graphical structures.
+
 Most control flow functions share the below model.
 
 ```lua
+-- s is usually a string unique (to the current scope)
+-- f is a function which takes no parameters
 function ImGui:Something(s, f)
     ImGui:BeginSomething(s)
     f()
@@ -108,7 +148,15 @@ Since it is easy to pass anonymous function around it makes the syntax easy and 
 
 ### Tree
 
-This is the lua version of TreeNode and TreePop.
+Tree Closed
+
+![image](examples/images/tree-closed.png)
+
+Tree Open
+
+![image](examples/images/tree-open.png)
+
+Tree's can be combined recursively (like an imgui element) to make a complex structure.
 
 ```lua
 -- Openable Menu with Indent - You can recursively combine these to make complex structures.
@@ -119,7 +167,15 @@ end)
 
 #### Header
 
-This is the lua version of CollapsableHeader. This produces an openable menu but unlike Tree there is no indent.
+This produces an openable menu but unlike Tree there is no indent.
+
+Header Closed
+
+![image](examples/images/header-closed.png)
+
+Header Open
+
+![image](examples/images/header-open.png)
 
 ```lua
 -- Open-able Menu without Indent.
@@ -130,7 +186,15 @@ end)
 
 #### TabBar
 
-This produces a menu with multiple tabs where one tab is displayed at a time depending on what the user selects.
+This produces a menu with multiple tabs where one tab is displayed at a time depending on what the user selects. Other ImGui elements can be put inside like other control statements allowing for creating complex recursive structures.
+
+Tab 1 Selected
+
+![image](examples/images/tab-bar-1.png)
+
+Tab 2 Selected
+
+![image](examples/images/tab-bar-2.png)
 
 ```lua
 ImGui:TabBar("Some Tabs", function()
@@ -144,11 +208,16 @@ end)
 
 #### Window
 
-This lets you create a floating window from the current window.
+`ImGui:Window` lets you create a floating window from the current window. It will only show if the control code it is in is active (ie tree/header open or window is open). This lets you build complex pop outs which depend on other windows.
+
+![image](examples/images/window.png)
 
 ```lua
-ImGui:Window("Window!", function() 
-    ImGui:Text("This is a window...")
+ImGui:Header("Popout Window", function()
+    ImGui:Text("Window Popped Out!")
+    ImGui:Window("Window!", function() 
+        ImGui:Text("This is a window...")
+    end)
 end)
 ```
 
@@ -169,17 +238,8 @@ local s = ImGui.Serialize({
         world = "something"
     }
 })
+
+ImGui:Text(s)
 ```
 
-This will produce (subject to lua reordering)
-
-```txt
-{
-    plane = "A-4E",
-    planet = "Earth",
-    another_table = {
-        hello = 5,
-        world = "something"
-    }
-}
-```
+![image](examples/images/serialize.png)
