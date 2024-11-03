@@ -4,11 +4,16 @@ Very early prototype of a Lua Only ImGui Library for DCS World.
 
 ## Installation
 
+### Git + Build
+
+```git submodule add <.git link> <path to scripts>```
+
+### Manual Installation
+
 1. Install (either build or ~~download~~) dll at `<your plane>/bin/LuaImGui.dll`
 2. Modify entry.lua to include `binaries = {'LuaImGui'}` if you already have a dll then make a list `binaries = {'otherdll', 'LuaImGui'}`
 3. In device_init.lua (and devices.lua) create a new lua device which releases the ImGui. See examples/ImGuiDevice.lua
 4. Add ImGui code to your devices. See examples below.
-
 
 ## Examples
 
