@@ -1,6 +1,6 @@
 [submodule "ext/DCS-EFM-ImGui"]
 	path = ext/DCS-EFM-ImGui
-	url = https://github.com/cppimmo/DCS-EFM-ImGui.git
+	url = https://github.com/08jne01/DCS-EFM-ImGui.git
 [submodule "ext/minhook"]
 	path = ext/minhook
 	url = https://github.com/TsudaKageyu/minhook.git
