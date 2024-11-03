@@ -2,6 +2,14 @@
 
 Very early prototype of a Lua Only ImGui Library for DCS World.
 
+## Installation
+
+1. Install (either build or ~~download~~) dll at `<your plane>/bin/LuaImGui.dll`
+2. Modify entry.lua to include `binaries = {'LuaImGui'}` if you already have a dll then make a list `binaries = {'otherdll', 'LuaImGui'}`
+3. In device_init.lua (and devices.lua) create a new lua device which releases the ImGui. See examples/ImGuiDevice.lua
+4. Add ImGui code to your devices. See examples below.
+
+
 ## Examples
 
 ### Creating Windows
@@ -84,7 +92,7 @@ end
 
 Since it is easy to pass anonymous function around it makes the syntax easy and similar to normal ImGui.
 
-#### Tree
+### Tree
 
 This is the lua version of TreeNode and TreePop.
 
