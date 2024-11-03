@@ -43,11 +43,16 @@ ImGui.AddItem("Menu Name", "Menu Entry Name", function()
     -- If you don't have the same number of columns as the header the empty ones
     -- will be filled with nil.
 
-    
+
 
     -- Any ImGui functions which control flow will take a function
     -- This is because DCS is multithreaded so LuaImGui has to build
     -- a set of commands to send to the Render Thread.
+
+    -- It's very important to realise, all the code is executed. This is again
+    -- due to the multithreaded nature of DCS. So even though it looks like a statement
+    -- might not execute child code it will. It will simply select which code actually gets
+    -- drawn on the window.
 
     -- Luckily in lua it's fairly easy to pass anonymous functions around which makes
     -- the syntax easier to read.
@@ -60,6 +65,16 @@ ImGui.AddItem("Menu Name", "Menu Entry Name", function()
     -- Open-able Menu without Indent.
     ImGui:Header("Some Collapsable Header", function() 
         ImGui:Text("Some More Hidden Text")
+    end)
+
+    --This produces a menu with multiple tabs where one tab is displayed at a time 
+    -- depending on what the user selects.
+    ImGui:TabBar("Some Tabs", function()
+        for i=1,5 do
+            ImGui:TabItem(string.format("Tab %d", i), function() 
+                ImGui:Text(string.format("This is a tab: %d", i))
+            end)     
+        end
     end)
 
 end)

@@ -18,10 +18,22 @@ function ImGui:Tree(name, f)
     self:TreePop()
 end
 
-function ImGui:Header(s, f)
-    self:CollapsingHeader(s)
+function ImGui:Header(name, f)
+    self:CollapsingHeader(name)
     f()
     self:Pop() -- Since Collapsing Header doesn't have a end function
+end
+
+function ImGui:TabBar(name, f)
+    self:BeginTabBar(name)
+    f()
+    self:EndTabBar()
+end
+
+function ImGui:TabItem(name, f)
+    self:BeginTabItem(name)
+    f()
+    self:EndTabItem()
 end
 
 function ImGui:Table(t)
