@@ -11,9 +11,21 @@ extern "C"
 
 #include "ImGuiDisplay.h"
 
-#define REGISTER_FUNCTION( L, function ) \
-    lua_pushcfunction(L, l_##function ); \
-    lua_setfield( L, -2, #function )
+//#define REGISTER_FUNCTION( L, function ) \
+//    lua_pushcfunction(L, l_##function ); \
+//    lua_setfield( L, -2, #function )
+//
+//#define REGISTER_FUNCTION_NAMED(L, function, name) \
+//    lua_pushcfunction(L, function) \
+//    lua_setfield(L, -2, name)
+
+#define REGISTER_FUNCTION(function) { #function, l_##function }
+
+#define CONTROL_PUSH( function ) l_ControlFlowPush<[]( const char* c ) { return function(c); }>
+#define CONTROL_POP( function ) l_ControlFlowPop<[]() { return function(); }>
+
+#define REGISTER_CONTROL_PUSH(function) { #function, CONTROL_PUSH(ImGui::##function)}
+#define REGISTER_CONTROL_POP(function) { #function, CONTROL_POP(ImGui::##function)}
 
 namespace LuaImGui
 {
@@ -143,12 +155,13 @@ namespace LuaImGui
 
     int l_Text( lua_State* L )
     {
-        const char* str = lua_tostring( L, 2 );
-        //Print( L, 1 );
-        //Print( L, 2 );
+        lua_getglobal( L, "tostring" );
+        lua_pushvalue( L, 2 );
+        lua_call( L, 1, 1 );
+        const char* str = lua_tostring( L, -1 );
+
         int depth = Frame( L );
-        //Print( L, 1 );
-        //Print( L, 2 );
+
         if ( str )
         {
             ImguiDisplay::Call( L, [string = std::string( str )] {
@@ -181,31 +194,23 @@ namespace LuaImGui
         return 0;
     }
 
-    int l_CollapsingHeader( lua_State* L )
+    template<bool (*function)( const char* )>
+    int l_ControlFlowPush( lua_State* L )
     {
         int depth = PushFrame( L );
         const char* str = lua_tostring( L, 2 );
         ImguiDisplay::Call( L, [string = std::string( str )] {
-            return ImGui::CollapsingHeader( string.c_str() );
+            return function( string.c_str() );
             }, depth );
         return 0;
     }
 
-    int l_TreeNode( lua_State* L )
-    {
-        int depth = PushFrame( L );
-        const char* str = lua_tostring( L, 2 );
-        ImguiDisplay::Call( L, [string = std::string( str )] {
-            return ImGui::TreeNode( string.c_str() );
-            }, depth );
-        return 0;
-    }
-
-    int l_TreePop( lua_State* L )
+    template<void ( *function )()>
+    int l_ControlFlowPop( lua_State* L )
     {
         int depth = PopFrame( L );
         ImguiDisplay::Call( L, [] {
-            ImGui::TreePop();
+            function();
             return true;
             }, depth );
         return 0;
@@ -243,29 +248,40 @@ namespace LuaImGui
         // Create Table
         lua_newtable( L );
 
+        static const luaL_Reg functions[] = {
+            // Control
+            REGISTER_CONTROL_PUSH( BeginTabBar ),
+            REGISTER_CONTROL_POP( EndTabBar ),
+            REGISTER_CONTROL_PUSH( BeginTabItem ),
+            REGISTER_CONTROL_POP( EndTabItem ),
+            REGISTER_CONTROL_PUSH( TreeNode ),
+            REGISTER_CONTROL_POP( TreePop ),
+            REGISTER_CONTROL_PUSH( CollapsingHeader ),
+            REGISTER_FUNCTION( Pop ),
+
+            // Special Control
+            REGISTER_FUNCTION(Begin),
+            REGISTER_FUNCTION(End),
+            
+            // Immediate
+            REGISTER_FUNCTION(Text),
+            REGISTER_FUNCTION(Columns),
+            REGISTER_FUNCTION(NextColumn),
+
+            // Custom
+            REGISTER_FUNCTION(AddItem),
+            REGISTER_FUNCTION(Refresh),
+            REGISTER_FUNCTION(Destroy),
+            {nullptr, nullptr}
+        };
+
+        luaL_register( L, nullptr, functions );
+
         lua_pushvalue( L, -1 );
         lua_setfield( L, -2, "__index" );
 
         lua_pushstring( L, "LuaImGui");
         lua_setfield( L, -2, "__name" );
-
-        REGISTER_FUNCTION( L, Destroy );
-
-        REGISTER_FUNCTION( L, Text );
-        REGISTER_FUNCTION( L, Begin );
-        REGISTER_FUNCTION( L, End );
-        REGISTER_FUNCTION( L, Refresh );
-        REGISTER_FUNCTION( L, AddItem );
-
-        REGISTER_FUNCTION( L, TreeNode );
-        REGISTER_FUNCTION( L, TreePop );
-
-        REGISTER_FUNCTION( L, Columns );
-        REGISTER_FUNCTION( L, NextColumn );
-
-        REGISTER_FUNCTION( L, CollapsingHeader );
-        REGISTER_FUNCTION( L, Pop );
-
 
         lua_pushinteger( L, 0 );
         lua_setfield( L, -2, "depth");
