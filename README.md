@@ -4,7 +4,7 @@ Very early prototype of a Lua Only ImGui Library for DCS World.
 
 ## Examples
 
-### Creating Window
+### Creating Windows
 
 ```lua
 -- do at top of file
@@ -118,4 +118,46 @@ ImGui:TabBar("Some Tabs", function()
         end)     
     end
 end)
+```
+
+#### Window
+
+This lets you create a floating window from the current window.
+
+```lua
+ImGui:Window("Window!", function() 
+    ImGui:Text("This is a window...")
+end)
+```
+
+### Utility
+
+#### Serialize
+
+This function converts any table (and its metatable) and all its members into a string similar to how a table is defined in lua (not exactly the same). This makes it easy to inspect lua datastructures.
+
+```lua
+-- note . 
+-- not :
+local s = ImGui.Serialize({
+    plane = "A-4E",
+    planet = "Earth",
+    another_table = {
+        hello = 5,
+        world = "something"
+    }
+})
+```
+
+This will produce (subject to lua reordering)
+
+```txt
+{
+    plane = "A-4E",
+    planet = "Earth",
+    another_table = {
+        hello = 5,
+        world = "something"
+    }
+}
 ```
