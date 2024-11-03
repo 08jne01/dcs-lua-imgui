@@ -1,0 +1,9 @@
+[submodule "ext/DCS-EFM-ImGui"]
+	path = ext/DCS-EFM-ImGui
+	url = https://github.com/cppimmo/DCS-EFM-ImGui.git
+[submodule "ext/minhook"]
+	path = ext/minhook
+	url = https://github.com/TsudaKageyu/minhook.git
+[submodule "ext/imgui"]
+	path = ext/imgui
+	url = https://github.com/ocornut/imgui.git
