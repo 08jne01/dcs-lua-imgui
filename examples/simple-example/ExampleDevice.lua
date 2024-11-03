@@ -7,6 +7,9 @@ local some_state = {
     hello = "world"
 }
 
+-- To draw the imgui you need to add items to the imgui context 
+-- and you need to call ImGui.Refresh to update the imgui windows. See below.
+
 -- Menu Name is button in the bar across the top.
 -- Menu Entry name is an entry in that menu.
 -- Menus are created automatically as items are assigned to them.
@@ -87,8 +90,10 @@ end
 function SetCommand(command,value)
 end
 
--- Just for illustration that this is a normal device.
+-- ImGui.Refresh() needs to be called in every lua state (device).
+-- Every time Refresh is called imgui window will update.
 function update()
+    ImGui.Refresh()
 end
 
 need_to_be_closed = false -- close lua state after initialization

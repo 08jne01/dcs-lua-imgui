@@ -14,6 +14,8 @@ Very early prototype of a Lua Only ImGui Library for DCS World.
 
 ### Creating Windows
 
+To draw the imgui you need to add items to the imgui context and you need to call Refresh to update the imgui windows. See below.
+
 ```lua
 -- do at top of file
 dofile(LockOn_Options.script_path.."ImGui.lua")
@@ -25,6 +27,13 @@ dofile(LockOn_Options.script_path.."ImGui.lua")
 ImGui.AddItem("Menu", "Menu Entry Name", function() 
     -- Code goes here
 end)
+
+-- ImGui.Refresh() needs to be called in every lua state (device).
+-- Every time Refresh is called imgui window will update.
+function update()
+    ImGui.Refresh()
+end
+
 ```
 
 ### Immediate Drawing
