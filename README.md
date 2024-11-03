@@ -65,7 +65,7 @@ end)
 -- for the rest of the table, so be sure to make sure it is at least
 -- more than the other rows.
 ImGui:Table({
-    { "Name", "Speed (kts)", "Mass (kg)" }
+    { "Name", "Speed (kts)", "Mass (kg)" },
     { "A-4E", 585, 4469 },
     { "F-100D", 803, 9525 },
     { "Sopwith Camel" }, -- You don't have to have the same number of Columns
