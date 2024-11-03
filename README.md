@@ -24,7 +24,8 @@ Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio 
 
 ### Manual Installation - Binaries
 
-TODO
+1. Download Zip from Releases
+2. Copy LuaImGui folder to Cockpit/Scripts
 
 ### Build
 
