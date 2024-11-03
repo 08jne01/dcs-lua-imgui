@@ -48,9 +48,9 @@ endif()
 add_subdirectory("ext/minhook")
 
 set_target_properties( LuaImGui PROPERTIES 
-    ARCHIVE_OUTPUT_DIRECTORY  "C:/Users/JNelson/Saved Games/DCS.openbeta/Mods/Aircraft/A-4E-C/bin/"
-    LIBRARY_OUTPUT_DIRECTORY  "C:/Users/JNelson/Saved Games/DCS.openbeta/Mods/Aircraft/A-4E-C/bin/"
-    RUNTIME_OUTPUT_DIRECTORY "C:/Users/JNelson/Saved Games/DCS.openbeta/Mods/Aircraft/A-4E-C/bin/" )
+    ARCHIVE_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}/lua"
+    LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}/lua"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lua" )
 
 target_compile_definitions(LuaImGui PRIVATE LUA_BUILD_AS_DLL)
 #target_link_directories( LuaImGui PRIVATE  )
