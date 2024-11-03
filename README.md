@@ -16,8 +16,6 @@ Submodules organize this repository into a different git repository so you can e
 
 ### Standalone
 
-Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio Install).
-
 1. ```git clone "https://github.com/08jne01/dcs-lua-imgui.git" LuaImGui```
 2. ```cd LuaImGui```
 3. ```git submodule update --init --recursive```
@@ -28,6 +26,8 @@ Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio 
 2. Copy LuaImGui folder to Cockpit/Scripts
 
 ### Build
+
+Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio Install).
 
 1. Open resulting folder in IDE/Command Line of choice, some examples:
     - Visual Studio:
@@ -78,7 +78,6 @@ function update()
     ImGui.Refresh()
 end
 ```
-
 
 ### Immediate Drawing
 
