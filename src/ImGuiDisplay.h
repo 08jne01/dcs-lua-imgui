@@ -61,7 +61,10 @@ public:
         display.error = true;
     }
 
+    static void MenuBar( bool state ) { display.hidden = ! state; }
+
 private:
+    std::atomic<bool> hidden = false;
     bool hook_created = false;
     bool error = false;
     static ImguiDisplay display;

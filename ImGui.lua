@@ -4,6 +4,18 @@ function require_imgui()
   return result
 end
 
+function require_imgui_stubs()
+    package.path = package.path..";"..LockOn_Options.script_path.."LuaImGui\\?.dll"
+    return require("ImGuiStubs")
+end
+
+-- Set this global variable to disable imgui
+if ( imgui_disabled ) then
+    ImGui = require_imgui_stubs()
+else
+    ImGui = require_imgui()
+end
+
 ImGui = require_imgui()
 
 function ImGui:Window(name, f)

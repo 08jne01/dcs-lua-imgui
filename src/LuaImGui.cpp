@@ -237,6 +237,21 @@ namespace LuaImGui
         return 0;
     }
 
+    int l_MenuBar( lua_State* L )
+    {
+        if ( ! lua_isboolean( L, 1 ) )
+        {
+            lua_pushstring( L, "ImGui.MenuBar(param) -> parameter was not a boolean, did you call with : instead of . ?" );
+            Log( L, lua_gettop( L ) );
+            lua_pop( L, 1 );
+            return 0;
+        }
+
+        bool state = lua_toboolean( L, 1 );
+        ImguiDisplay::MenuBar( state );
+        return 0;
+    }
+
     int l_CreateImGui( lua_State* L )
     {
         // Create Table
@@ -265,6 +280,7 @@ namespace LuaImGui
             // Custom
             REGISTER_FUNCTION(AddItem),
             REGISTER_FUNCTION(Refresh),
+            REGISTER_FUNCTION(MenuBar),
             {nullptr, nullptr}
         };
 

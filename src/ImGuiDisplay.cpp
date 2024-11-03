@@ -76,6 +76,9 @@ ImguiDisplay::~ImguiDisplay()
 
 void ImguiDisplay::Refresh( lua_State* L )
 {
+    if ( hidden )
+        return;
+
     if ( error )
         return;
     
@@ -113,6 +116,9 @@ void ImguiDisplay::Refresh( lua_State* L )
 
 void ImguiDisplay::Display()
 {
+    if ( hidden )
+        return;
+
     if ( error )
         return;
 
