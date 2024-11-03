@@ -237,12 +237,6 @@ namespace LuaImGui
         return 0;
     }
 
-    int l_Destroy( lua_State* L )
-    {
-        ImguiDisplay::Destroy();
-        return 0;
-    }
-
     int l_CreateImGui( lua_State* L )
     {
         // Create Table
@@ -271,7 +265,6 @@ namespace LuaImGui
             // Custom
             REGISTER_FUNCTION(AddItem),
             REGISTER_FUNCTION(Refresh),
-            REGISTER_FUNCTION(Destroy),
             {nullptr, nullptr}
         };
 

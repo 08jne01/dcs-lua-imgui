@@ -42,40 +42,29 @@ public:
     static void DisplayHook();
     static void InputHook( UINT msg, WPARAM w_param, LPARAM l_param );
 
-    static void Create()
-    {
-        if ( ! display.has_value() )
-            display.emplace();
-    }
-    static void Destroy()
-    {
-        display.reset();
-    }
+    static void CreateHook();
 
     static void AddImguiItem( const std::string& menu, const std::string& name, std::function<void( lua_State*, std::string, bool*)>&& imgui_function );
 
     static void Call( lua_State* L, std::function<bool()> function, int depth )
     {
-        if ( display )
-            display->commands[L].push_back( Command{ [function]( bool* ) { return function(); }, depth, nullptr } );
+        display.commands[L].push_back( Command{ [function]( bool* ) { return function(); }, depth, nullptr } );
     }
 
     static void Call( lua_State* L, std::function<bool(bool*)> function, int depth, bool* control )
     {
-        if ( display )
-            display->commands[L].push_back( { function, depth, control } );
+        display.commands[L].push_back( { function, depth, control } );
     }
 
     static void Error()
     {
-        if ( display )
-            display->error = true;
+        display.error = true;
     }
 
 private:
-
+    bool hook_created = false;
     bool error = false;
-    static std::optional<ImguiDisplay> display;
+    static ImguiDisplay display;
 
     void Refresh( lua_State* L );
     void Display();

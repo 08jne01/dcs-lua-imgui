@@ -4,17 +4,11 @@
 #include <functional>
 #include <imgui.h>
 
-std::optional<ImguiDisplay> ImguiDisplay::display;
+ImguiDisplay ImguiDisplay::display;
 
 void ImguiDisplay::AddImguiItem( const std::string& menu, const std::string& name, std::function<void( lua_State*, std::string item, bool*)>&& imgui_function )
 {
-    if ( ! display.has_value() )
-    {
-        printf( "No Imgui\n" );
-        return;
-    }
-
-    Menu& imgui_menu = display->menus[menu];
+    Menu& imgui_menu = display.menus[menu];
     imgui_menu.items.emplace_back();
 
     MenuItem& imgui_menu_item = imgui_menu.items.back();
@@ -24,25 +18,33 @@ void ImguiDisplay::AddImguiItem( const std::string& menu, const std::string& nam
 
 void ImguiDisplay::DisplayHook()
 {
-    if ( display )
-        display->Display();
+    std::unique_lock lock( display.command_mtx );
+    display.Display();
 }
 
 
 void ImguiDisplay::RefreshDisplay( lua_State* L )
 {
-    if ( display )
-        display->Refresh(L);
+    std::unique_lock lock( display.command_mtx );
+    display.Refresh(L);
 }
 
 void ImguiDisplay::InputHook( UINT msg, WPARAM w_param, LPARAM l_param )
 {
-    if ( display )
-        display->Input( msg, w_param, l_param );
+    display.Input( msg, w_param, l_param );
 }
 
 ImguiDisplay::ImguiDisplay()
 {
+
+}
+
+void ImguiDisplay::CreateHook()
+{
+    if ( display.hook_created )
+        return;
+
+    display.hook_created = true; // creat hook only once
     FmGuiConfig config;
     config.imGuiStyle = FmGuiStyle::CLASSIC;
 
@@ -53,7 +55,6 @@ ImguiDisplay::ImguiDisplay()
     else
     {
         printf( "D3D11 Context: %s\n", FmGui::AddressDump().c_str() );
-
         FmGui::SetInputRoutinePtr( InputHook );
         FmGui::SetRoutinePtr( DisplayHook );
         FmGui::SetWidgetVisibility( true );
@@ -62,10 +63,17 @@ ImguiDisplay::ImguiDisplay()
 
 ImguiDisplay::~ImguiDisplay()
 {
+    error = true;
+    FmGui::SetInputRoutinePtr( nullptr );
+    FmGui::SetRoutinePtr( nullptr );
+
     if ( ! FmGui::ShutdownHook() )
     {
         printf( "FmGui::ShutdownHook failed.\n" );
     }
+
+    Sleep( 500 );
+
 }
 
 void ImguiDisplay::Refresh( lua_State* L )
@@ -76,7 +84,6 @@ void ImguiDisplay::Refresh( lua_State* L )
     if ( menus.empty() )
         return;
 
-    std::unique_lock lock( command_mtx );
     commands[L].clear();
 
     /**/
@@ -108,7 +115,6 @@ void ImguiDisplay::Display()
     if ( error )
         return;
 
-    std::unique_lock lock( command_mtx );
     if ( ImGui::BeginMainMenuBar() )
     {
         for ( auto& [menu_name, menu] : menus )

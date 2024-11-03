@@ -24,7 +24,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH:
-        ImguiDisplay::Destroy();
         break;
     }
     return TRUE;
@@ -32,7 +31,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 extern "C" int __declspec( dllexport ) luaopen_LuaImGui( lua_State* L )
 {
-    ImguiDisplay::Create();
+    ImguiDisplay::CreateHook();
     /*ImguiDisplay::AddImguiItem( "Hello", "Hello", []() {
         ImGui::Text( "Hello" );
     });*/

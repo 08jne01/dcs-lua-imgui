@@ -1,5 +1,5 @@
 function require_imgui()
-  package.cpath = package.cpath..";"..LockOn_Options.script_path.."..\\..\\bin\\?.dll"
+  package.cpath = package.cpath..";"..LockOn_Options.script_path.."LuaImGui\\?.dll"
   success,result = pcall(require,'LuaImGui')
   return result
 end
