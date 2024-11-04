@@ -4,6 +4,8 @@ Very early prototype of a Lua Only ImGui Library for DCS World. This lets you cr
 
 ![image](examples/images/complete-example.png)
 
+See examples [below](#contents)
+
 ## Installation
 
 ### Git Submodule
@@ -47,6 +49,16 @@ Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio 
 2. Copy LuaImGui folder to Cockpit/Scripts (if it isn't there)
 
 ## Examples
+
+### Contents
+
+1. [Creating Windows](#creating-windows)
+2. [Immediate Drawing](#immediate-drawing)
+3. [Control Statements](#control-statements)
+4. [Enable/Disable Menu Bar](#menubar)
+5. [Console](#console)
+6. [Plotting](#plotting)
+7. [Utility](#utility)
 
 ### Creating Windows
 
@@ -154,7 +166,7 @@ end
 
 Since it is easy to pass anonymous function around it makes the syntax easy and similar to normal ImGui.
 
-### Tree
+#### Tree
 
 Tree Closed
 
@@ -225,6 +237,58 @@ ImGui:Header("Popout Window", function()
     ImGui:Text("Window Popped Out!")
     ImGui:Window("Window!", function() 
         ImGui:Text("This is a window...")
+    end)
+end)
+```
+
+### MenuBar
+
+```lua
+-- This allows the menu bar to be disabled. It also disables all code execution.
+-- This would set the menu bar off.
+-- Note the . not :
+local is_on = false
+ImGui.MenuBar(is_on)
+```
+
+### Console
+
+A console window where you can print messages. You can also clear, use auto-scroll and look at the history.
+
+![image](examples/images/console.png)
+
+```lua
+-- Similar to print_message_to_user except puts it in a neat window you can scroll back up.
+-- Note the . not :
+ImGui.Log("Message 1")
+ImGui.Log("Message 2")
+ImGui.Log("Message 3")
+```
+
+### Plotting
+
+Plotting is very simple at the moment more features will be added later. Currently it supports:
+
+- Line - `PlotLine`
+- Horizontal Lines - `PlotHLines`
+- Vertical Lines - `PlotVLines`
+
+![image](examples/images/plot.png)
+
+```lua
+local dx = 1.0 -- space between points
+local y_data = {1,2,3,4,5,6,7,8,9} -- y points
+local v_lines = { 3.0, 6.0 } -- x coordinates
+local h_lines = { 4.0, 8.0 } -- y coordinates
+
+ImGui.AddItem("Plot", "Test Graph", function() 
+    -- Plot is required in order to draw lines.
+    ImGui:Plot("Plot Name", "x-axis label", "y-axis label", 800, function() 
+        ImGui:PlotHLines("H-Lines", h_lines) -- horizontal lines will be plotted at y values
+        ImGui:PlotVLines("V-Lines", v_lines) -- vertical lines will be plotted at x values
+
+        -- You can have multiple PlotLine
+        ImGui:PlotLine("Line", dx, y_data) -- line will be plotted with y_data with dx spacing between points
     end)
 end)
 ```
