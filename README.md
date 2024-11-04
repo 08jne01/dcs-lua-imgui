@@ -50,12 +50,6 @@ Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio 
 
 ## Configuration
 
-### LuaImGui Path
-
-For aircraft mods you will want to install the LuaImGui folder in `Cockpit/Scripts` however you may want to change the location (for example export or mission lua contexts). To do this you set the global `lua_imgui_path` to the path to the LuaImGui folder before calling `require` on the `ImGui.lua`.
-
-The path includes the LuaImGui folder itself, for example the default lua_imgui_path (if one is not set) is set to `LockOn_Options.script_path.."LuaImGui"` which resolves to `<aircraft directory>/Cockpit/Scripts/LuaImGui`.
-
 ### Enabling/Disabling LuaImGui
 
 LuaImGui code execution can be disabled by turning off the [menu bar](#menubar) however the direct-x trampolines are still setup and executing. Since LuaImGui is new and the multithreaded nature of DCS can make it not stable with LuaImGui. It's best to disable it completely in production.
@@ -103,6 +97,12 @@ require("ImGui")
 ```
 
 The really nice thing about this is you can then get the benefits of require by simply calling `dofile` once for the `ConfigurePackage.lua` and requiring all other lua files. See [below](#creating-windows) for a better description of the `require` function.
+
+### LuaImGui Path
+
+For aircraft mods you will want to install the LuaImGui folder in `Cockpit/Scripts` however you may want to change the location (for example export or mission lua contexts). To do this you set the global `lua_imgui_path` to the path to the LuaImGui folder before calling `require` on the `ImGui.lua`.
+
+The path includes the LuaImGui folder itself, for example the default lua_imgui_path (if one is not set) is set to `LockOn_Options.script_path.."LuaImGui"` which resolves to `<aircraft directory>/Cockpit/Scripts/LuaImGui`.
 
 ## Examples
 
