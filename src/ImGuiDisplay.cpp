@@ -3,6 +3,7 @@
 #include <FmGui.hpp>
 #include <functional>
 #include <imgui.h>
+#include "Fonts/Fonts.h"
 
 ImguiDisplay ImguiDisplay::display;
 
@@ -27,9 +28,12 @@ void ImguiDisplay::RefreshDisplay( lua_State* L )
     display.Refresh(L);
 }
 
-void ImguiDisplay::InputHook( UINT msg, WPARAM w_param, LPARAM l_param )
+void ImguiDisplay::SetupHook()
 {
-    display.Input( msg, w_param, l_param );
+    ImGuiIO& io = ImGui::GetIO();
+    void* bytes;
+    size_t n_bytes = fonts::GetConsolaTTF( ImGui::MemAlloc, bytes );
+    io.Fonts->AddFontFromMemoryTTF( bytes, static_cast<int>( n_bytes ), 14.0f, NULL, io.Fonts->GetGlyphRangesDefault() );
 }
 
 ImguiDisplay::ImguiDisplay()
@@ -53,8 +57,9 @@ void ImguiDisplay::CreateHook()
     else
     {
         printf( "D3D11 Context: %s\n", FmGui::AddressDump().c_str() );
-        FmGui::SetInputRoutinePtr( InputHook );
+        FmGui::SetImGuiSetupRoutinePtr( SetupHook );
         FmGui::SetRoutinePtr( DisplayHook );
+        FmGui::SetInputRoutinePtr( nullptr );
         FmGui::SetWidgetVisibility( true );
     }
 }
@@ -69,9 +74,6 @@ ImguiDisplay::~ImguiDisplay()
     {
         printf( "FmGui::ShutdownHook failed.\n" );
     }
-
-    Sleep( 500 );
-
 }
 
 void ImguiDisplay::Refresh( lua_State* L )
@@ -122,10 +124,36 @@ void ImguiDisplay::Display()
     if ( error )
         return;
 
-    std::unique_lock lock( display.command_mtx );
-
     if ( ImGui::BeginMainMenuBar() )
     {
+        if ( ImGui::BeginMenu( "File" ) )
+        {
+            if ( ImGui::MenuItem( "Console" ) )
+            {
+                console_open = true;
+            }
+
+            if ( ImGui::MenuItem( "Style Editor" ) )
+            {
+                style_editor_open = true;
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if ( style_editor_open )
+        {
+            if ( ImGui::Begin( "Style Editor", &style_editor_open ) )
+                ImGui::ShowStyleEditor();
+            ImGui::End();
+        }
+
+       
+        std::unique_lock lock( display.command_mtx );
+
+        if ( console_open )
+            console.Draw( "Console", console_open );
+
         for ( auto& [menu_name, menu] : menus )
         {
             if ( ! ImGui::BeginMenu( menu_name.c_str() ) )
@@ -142,9 +170,12 @@ void ImguiDisplay::Display()
             }
             ImGui::EndMenu();
         }
+
         ImGui::EndMainMenuBar();
     }
 
+
+    std::unique_lock lock( display.command_mtx );
     int allowed_depth = 0;
 
     for ( auto& [L, L_commands] : completed_commands )
@@ -164,9 +195,4 @@ void ImguiDisplay::Display()
             }
         }
     }
-}
-
-void ImguiDisplay::Input( UINT msg, WPARAM w_param, LPARAM l_param )
-{
-
 }

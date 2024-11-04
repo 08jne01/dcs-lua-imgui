@@ -1,11 +1,13 @@
+lua_imgui_path = lua_imgui_path or LockOn_Options.script_path.."LuaImGui"
+
 function require_imgui()
-  package.cpath = package.cpath..";"..LockOn_Options.script_path.."LuaImGui\\?.dll"
+  package.cpath = package.cpath..";"..lua_imgui_path.."\\?.dll"
   success,result = pcall(require,'LuaImGui')
   return result
 end
 
 function require_imgui_stubs()
-    package.path = package.path..";"..LockOn_Options.script_path.."LuaImGui\\?.dll"
+    package.path = package.path..";"..lua_imgui_path.."\\?.lua"
     return require("ImGuiStubs")
 end
 
@@ -70,6 +72,12 @@ function ImGui:Table(t)
         end
     end
     self:Columns(1)
+end
+
+function ImGui:Plot(plot_name, x_axis_name, y_axis_name, width, f)
+    ImGui:BeginPlot(plot_name, x_axis_name, y_axis_name, width)
+    f()
+    ImGui:EndPlot()
 end
 
 

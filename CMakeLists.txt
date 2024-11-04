@@ -21,12 +21,19 @@ set(FMGUI_SRC
 )
 list(TRANSFORM FMGUI_SRC PREPEND ${FMGUI_SRC_PATH})
 
+set(IMPLOT_SRC_PATH "${CMAKE_SOURCE_DIR}/ext/implot/")
+set(IMPLOT_SRC
+    implot.cpp
+    implot_items.cpp
+)
+list(TRANSFORM IMPLOT_SRC PREPEND ${IMPLOT_SRC_PATH})
+
 set(IMGUI_SRC_PATH "${CMAKE_SOURCE_DIR}/ext/imgui/")
 set(IMGUI_SRC
     backends/imgui_impl_dx11.cpp
     backends/imgui_impl_win32.cpp
     imgui.cpp
-    #imgui_demo.cpp
+    imgui_demo.cpp
     imgui_draw.cpp
     imgui_tables.cpp
     imgui_widgets.cpp
@@ -38,6 +45,7 @@ list(TRANSFORM IMGUI_SRC PREPEND ${IMGUI_SRC_PATH})
 add_library( LuaImGui SHARED
     ${source_list}
     ${IMGUI_SRC}
+    ${IMPLOT_SRC}
     ${FMGUI_SRC}
 )
 
@@ -52,10 +60,11 @@ set_target_properties( LuaImGui PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}" )
 
-target_compile_definitions(LuaImGui PRIVATE LUA_BUILD_AS_DLL)
+target_compile_definitions(LuaImGui PRIVATE LUA_BUILD_AS_DLL FMGUI_ENABLE_IMPLOT)
 #target_link_directories( LuaImGui PRIVATE  )
 target_link_libraries( LuaImGui PRIVATE minhook "${CMAKE_SOURCE_DIR}/ext/dcs-lua/lua.lib" )
 target_include_directories( LuaImGui PRIVATE
+    "${CMAKE_SOURCE_DIR}/ext/implot"
     "${CMAKE_SOURCE_DIR}/ext/imgui/"
     "${CMAKE_SOURCE_DIR}/ext/imgui/backends"
     "${CMAKE_SOURCE_DIR}/ext/DCS-EFM-ImGui/Include"

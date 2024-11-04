@@ -8,6 +8,7 @@ extern "C"
 
 #include <future>
 #include "imgui.h"
+#include "implot.h"
 
 #include "ImGuiDisplay.h"
 
@@ -252,6 +253,128 @@ namespace LuaImGui
         return 0;
     }
 
+    
+
+    int l_BeginPlot( lua_State* L )
+    {
+        int depth = PushFrame( L );
+
+        const char* plot_name_str = lua_tostring( L, 2 );
+        const char* x_axis_str = lua_tostring( L, 3 );
+        const char* y_axis_str = lua_tostring( L, 4 );
+        int width = lua_tonumber( L, 5 );
+
+        ImguiDisplay::Call( L, [
+            plot_name_string = std::string( plot_name_str ),
+            x_axis_string = std::string( x_axis_str ),
+            y_axis_string = std::string( y_axis_str ),
+            width
+        ] {
+            return ImPlot::BeginPlot( 
+                plot_name_string.c_str(),  
+                x_axis_string.c_str(),
+                y_axis_string.c_str(),
+                ImVec2(width, 0),
+                ImPlotFlags_NoBoxSelect | ImPlotFlags_AntiAliased, ImPlotAxisFlags_None, ImPlotAxisFlags_None
+            );
+        }, depth );
+
+        return 0;
+    }
+
+    int l_EndPlot( lua_State* L )
+    {
+        int depth = PopFrame( L );
+        const char* str = lua_tostring( L, 2 );
+        ImguiDisplay::Call( L, [] {
+                ImPlot::EndPlot();
+                return true;
+            }, depth );
+
+        return 0;
+    }
+
+    std::vector<double> ReadVector( lua_State* L, int idx )
+    {
+        std::vector<double> values;
+        for ( int i = 1; ; i++ )
+        {
+            lua_rawgeti( L, idx, i );
+            if ( lua_isnil( L, -1 ) )
+            {
+                lua_pop( L, 1 );
+                break;
+            }
+
+            const double y = lua_tonumber( L, -1 );
+            values.push_back( y );
+            lua_pop( L, 1 );
+        }
+
+        return values;
+    }
+
+    int l_PlotLine( lua_State* L )
+    {
+        const int depth = Frame( L );
+
+        const char* line_name_str = lua_tostring( L, 2 );
+        const double dx = lua_tonumber( L, 3 );
+
+        ImguiDisplay::Call( L, [
+            line_name_string = std::string( line_name_str ),
+            dx,
+            y_values = std::move( ReadVector( L, 4 ) )
+        ] {
+                ImPlot::PlotLine( line_name_string.c_str(), y_values.data(), static_cast<int>( y_values.size() ), dx );
+                return true;
+            }, depth );
+
+        return 0;
+    }
+
+    int l_PlotVLines( lua_State* L )
+    {
+        const int depth = Frame( L );
+        const char* line_name_str = lua_tostring( L, 2 );
+        ImguiDisplay::Call( L, [
+            line_name_string = std::string( line_name_str ),
+            positions = std::move(ReadVector( L, 3 ))
+        ] {
+            ImPlot::PlotVLines( line_name_string.c_str(), positions.data(), static_cast<int>( positions.size() ) );
+            return true;
+        }, depth );
+
+        return 0;
+    }
+
+    int l_PlotHLines( lua_State* L )
+    {
+        const int depth = Frame( L );
+        const char* line_name_str = lua_tostring( L, 2 );
+        ImguiDisplay::Call( L, [
+            line_name_string = std::string( line_name_str ),
+            positions = std::move( ReadVector( L, 3 ) )
+        ] {
+                ImPlot::PlotHLines( line_name_string.c_str(), positions.data(), static_cast<int>( positions.size() ) );
+                return true;
+        }, depth );
+
+        return 0;
+    }
+
+    int l_Log( lua_State* L )
+    {
+        lua_getglobal( L, "tostring" );
+        lua_pushvalue( L, 1 );
+        lua_call( L, 1, 1 );
+
+        const char* str = lua_tostring( L, -1 );
+        ImguiDisplay::Log( str );
+        lua_pop( L, 1 );
+        return 0;
+    }
+
     int l_CreateImGui( lua_State* L )
     {
         // Create Table
@@ -268,6 +391,13 @@ namespace LuaImGui
             REGISTER_CONTROL_PUSH( CollapsingHeader ),
             REGISTER_FUNCTION( Pop ),
 
+            REGISTER_FUNCTION( BeginPlot ),
+            REGISTER_FUNCTION( EndPlot ),
+
+            REGISTER_FUNCTION( PlotLine ),
+            REGISTER_FUNCTION( PlotHLines ),
+            REGISTER_FUNCTION( PlotVLines ),
+
             // Special Control
             REGISTER_FUNCTION(Begin),
             REGISTER_FUNCTION(End),
@@ -281,6 +411,7 @@ namespace LuaImGui
             REGISTER_FUNCTION(AddItem),
             REGISTER_FUNCTION(Refresh),
             REGISTER_FUNCTION(MenuBar),
+            REGISTER_FUNCTION(Log),
             {nullptr, nullptr}
         };
 

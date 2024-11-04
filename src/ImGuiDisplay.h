@@ -8,6 +8,7 @@
 #include <optional>
 #include <future>
 #include "ThreadSafeQueue.h"
+#include "ImGuiLog.h"
 
 struct lua_State;
 
@@ -40,7 +41,7 @@ public:
 
     static void RefreshDisplay( lua_State* L );
     static void DisplayHook();
-    static void InputHook( UINT msg, WPARAM w_param, LPARAM l_param );
+    static void SetupHook();
 
     static void CreateHook();
 
@@ -61,9 +62,20 @@ public:
         display.error = true;
     }
 
+    static void Log( const char* s )
+    {
+        std::unique_lock lock( display.command_mtx );
+        display.console.Add( "%s\n", s );
+    }
+
     static void MenuBar( bool state ) { display.hidden = ! state; }
 
 private:
+
+    bool style_editor_open = false;
+    bool console_open = false;
+    utils::Log console;
+
     std::atomic<bool> hidden = false;
     bool hook_created = false;
     bool error = false;
