@@ -48,6 +48,62 @@ Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio 
 
 2. Copy LuaImGui folder to Cockpit/Scripts (if it isn't there)
 
+## Configuration
+
+### LuaImGui Path
+
+For aircraft mods you will want to install the LuaImGui folder in `Cockpit/Scripts` however you may want to change the location (for example export or mission lua contexts). To do this you set the global `lua_imgui_path` to the path to the LuaImGui folder before calling `require` on the `ImGui.lua`.
+
+The path includes the LuaImGui folder itself, for example the default lua_imgui_path (if one is not set) is set to `LockOn_Options.script_path.."LuaImGui"` which resolves to `<aircraft directory>/Cockpit/Scripts/LuaImGui`.
+
+### Enabling/Disabling LuaImGui
+
+LuaImGui code execution can be disabled by turning off the [menu bar](#menubar) however the direct-x trampolines are still setup and executing. Since LuaImGui is new and the multithreaded nature of DCS can make it not stable with LuaImGui. It's best to disable it completely in production.
+
+This is done by setting the global `imgui_disabled` to `true` before calling `require` on the `ImGui.lua`.
+
+One useful pattern which is not included by default is a separate ImGui.lua folder which acts as a proxy.
+
+```txt
+Cockpit/Scripts:
+        - ConfigurePackage.lua
+        - ImGui.lua
+        - LuaImGui:
+            - ImGui.lua
+```
+
+You can then have the following arrangement:
+
+ConfigurePackage.lua
+
+```lua
+-- This allows the use of require statements. require uses . instead of / for folder sepparators.
+-- Require only loads the lua once saving loading time.
+package.path = package.path..";"..LockOn_Options.script_path.."?.lua"
+package.path = package.path..";"..LockOn_Options.common_script_path.."?.lua"
+```
+
+ImGui.lua
+
+```lua
+imgui_disabled = false
+require( "LuaImGui.ImGui" )
+```
+
+Then instead of calling `require` for the `ImGui.lua` in `LuaImGui` folder we call the one in the `Cockpit/Scripts`. Then the setting `imgui_disabled` is the same for all instances where `ImGui.lua` is required. See below an example of how you would now `require` `ImGui.lua`.
+
+ExampleDevice.lua
+
+```lua
+dofile(LockOn_Options.script_path.."ConfigurePackage.lua")
+
+require("ImGui")
+
+-- code
+```
+
+The really nice thing about this is you can then get the benefits of require by simply calling `dofile` once for the `ConfigurePackage.lua` and requiring all other lua files. See [below](#creating-windows) for a better description of the `require` function.
+
 ## Examples
 
 ### Contents
@@ -73,6 +129,7 @@ To draw the imgui you need to add items to the imgui context and you need to cal
 -- With require join path folders with a .
 -- Some.Path.To.File
 -- Will result in Some/Path/To/File.lua being loaded.
+-- See require docs here https://www.lua.org/pil/8.1.html
 package.path = package.path..";"..LockOn_Options.script_path.."?.lua"
 require("LuaImGui.ImGui")
 -- Menu Name is button in the bar across the top.
