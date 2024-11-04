@@ -95,6 +95,22 @@ ImGui.AddItem("Menu Name", "Menu Entry Name", function()
         end)
     end)
 
+    local dx = 1.0                 -- space between points
+    local y_data = { 1, 2, 3, 4, 5, 6, 7, 8, 9 } -- y points
+    local v_lines = { 3.0, 6.0 }   -- x coordinates
+    local h_lines = { 4.0, 8.0 }   -- y coordinates
+
+    ImGui:Tree("Plot", function()
+        -- Plot is required in order to draw lines.
+        ImGui:Plot("Plot Name", "x-axis label", "y-axis label", 800, function()
+            ImGui:PlotHLines("H-Lines", h_lines) -- horizontal lines will be plotted at y values
+            ImGui:PlotVLines("V-Lines", v_lines) -- vertical lines will be plotted at x values
+
+            -- You can have multiple PlotLine
+            ImGui:PlotLine("Line", dx, y_data) -- line will be plotted with y_data with dx spacing between points
+        end)
+    end)
+
     -- note . 
     -- not :
     local s = ImGui.Serialize({
@@ -112,10 +128,26 @@ end)
 
 -- Just for illustration that this is a normal device.
 function post_initialize()
+    -- Similar to print_message_to_user except puts it in a neat window you can scroll back up.
+    -- Note the . not :
+    ImGui.Log("post_initialize")
 end
 
+local menu_on = true
+
 -- Just for illustration that this is a normal device.
-function SetCommand(command,value)
+function SetCommand(command, value)
+
+    -- This will print out the command and value.
+    ImGui.Log(string.format("Command: %d -> %f", command, value))
+
+    -- This will toggle between menu disabled and enabled whenever a command is received.
+    -- This allows the menu bar to be disabled. It also disables all code execution.
+    -- This would set the menu bar off.
+    -- Note the . not :
+    menu_on = not menu_on
+    ImGui.MenuBar(menu_on)
+
 end
 
 -- ImGui.Refresh() needs to be called in every lua state (device).
