@@ -31,7 +31,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 
 extern "C" int __declspec( dllexport ) luaopen_LuaImGui( lua_State* L )
 {
-    ImguiDisplay::CreateHook();
+    ImGuiDisplay::CreateHook();
     /*ImguiDisplay::AddImguiItem( "Hello", "Hello", []() {
         ImGui::Text( "Hello" );
     });*/

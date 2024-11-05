@@ -81,7 +81,7 @@ namespace LuaImGui
             {
                 Log( L, lua_gettop(L) );
                 lua_pop( L, 1 );
-                ImguiDisplay::Error();
+                ImGuiDisplay::Error();
             }
         }
     };
@@ -90,7 +90,7 @@ namespace LuaImGui
     {
         lua_getfield( L, 1, "depth" );
         //Print( L, -1 );
-        int depth = lua_tointeger( L, -1 );
+        int depth = int(lua_tointeger( L, -1 ));
         lua_pop( L, 1 );
         return depth;
     }
@@ -119,7 +119,7 @@ namespace LuaImGui
 
     int l_Refresh( lua_State* L )
     {
-        ImguiDisplay::RefreshDisplay( L );
+        ImGuiDisplay::RefreshDisplay( L );
         return 0;
     }
 
@@ -131,12 +131,12 @@ namespace LuaImGui
             const char* name = lua_tostring( L, 2 );
             
             LuaFunction function( L, 3 );
-            ImguiDisplay::AddImguiItem( menu, name, [function, L]( lua_State* context, std::string path, bool* control) {
+            ImGuiDisplay::AddLuaImGuiItem( menu, name, [function, L]( lua_State* context, std::string path, bool* control) {
                 if ( L != context ) // Only execute when being called from correct callstack (luastate).
                     return;
 
                 // Start Window
-                ImguiDisplay::Call( L, [path](bool* out) {
+                ImGuiDisplay::Call( L, [path](bool* out) {
                     return ImGui::Begin( path.c_str(), out);
                 }, 0, control);
 
@@ -144,7 +144,7 @@ namespace LuaImGui
                 function.Call();
 
                 // End Window
-                ImguiDisplay::Call( L, []() {
+                ImGuiDisplay::Call( L, []() {
                     ImGui::End();
                     return true;
                 }, 0);
@@ -165,7 +165,7 @@ namespace LuaImGui
 
         if ( str )
         {
-            ImguiDisplay::Call( L, [string = std::string( str )] {
+            ImGuiDisplay::Call( L, [string = std::string( str )] {
                 ImGui::Text( "%s", string.c_str() );
                 return true;
             }, depth );
@@ -179,7 +179,7 @@ namespace LuaImGui
         int depth = PushFrame( L );
         const char* str = lua_tostring( L, 2 );
         //int depth = lua_tointeger( L, 2 );
-        ImguiDisplay::Call( L, [string = std::string( str )] {
+        ImGuiDisplay::Call( L, [string = std::string( str )] {
             return ImGui::Begin( string.c_str() );
             }, depth );
         return 0;
@@ -188,7 +188,7 @@ namespace LuaImGui
     int l_End( lua_State* L )
     {
         int depth = PopFrame( L ) - 1; // Same Frame as Begin
-        ImguiDisplay::Call( L, [] {
+        ImGuiDisplay::Call( L, [] {
             ImGui::End();
             return true;
         }, depth );
@@ -200,7 +200,7 @@ namespace LuaImGui
     {
         int depth = PushFrame( L );
         const char* str = lua_tostring( L, 2 );
-        ImguiDisplay::Call( L, [string = std::string( str )] {
+        ImGuiDisplay::Call( L, [string = std::string( str )] {
             return function( string.c_str() );
             }, depth );
         return 0;
@@ -210,7 +210,7 @@ namespace LuaImGui
     int l_ControlFlowPop( lua_State* L )
     {
         int depth = PopFrame( L );
-        ImguiDisplay::Call( L, [] {
+        ImGuiDisplay::Call( L, [] {
             function();
             return true;
             }, depth );
@@ -219,9 +219,9 @@ namespace LuaImGui
 
     int l_Columns( lua_State* L )
     {
-        int columns = lua_tointeger( L, 2 );
+        int columns = int(lua_tointeger( L, 2 ));
         int depth = Frame( L );
-        ImguiDisplay::Call( L, [columns] {
+        ImGuiDisplay::Call( L, [columns] {
             ImGui::Columns( columns );
             return true;
             }, depth );
@@ -231,7 +231,7 @@ namespace LuaImGui
     int l_NextColumn( lua_State* L )
     {
         int depth = Frame( L );
-        ImguiDisplay::Call( L, [] {
+        ImGuiDisplay::Call( L, [] {
             ImGui::NextColumn();
             return true;
             }, depth );
@@ -249,7 +249,7 @@ namespace LuaImGui
         }
 
         bool state = lua_toboolean( L, 1 );
-        ImguiDisplay::MenuBar( state );
+        ImGuiDisplay::MenuBar( state );
         return 0;
     }
 
@@ -262,9 +262,9 @@ namespace LuaImGui
         const char* plot_name_str = lua_tostring( L, 2 );
         const char* x_axis_str = lua_tostring( L, 3 );
         const char* y_axis_str = lua_tostring( L, 4 );
-        int width = lua_tonumber( L, 5 );
+        float width = float(lua_tonumber( L, 5 ));
 
-        ImguiDisplay::Call( L, [
+        ImGuiDisplay::Call( L, [
             plot_name_string = std::string( plot_name_str ),
             x_axis_string = std::string( x_axis_str ),
             y_axis_string = std::string( y_axis_str ),
@@ -286,7 +286,7 @@ namespace LuaImGui
     {
         int depth = PopFrame( L );
         const char* str = lua_tostring( L, 2 );
-        ImguiDisplay::Call( L, [] {
+        ImGuiDisplay::Call( L, [] {
                 ImPlot::EndPlot();
                 return true;
             }, depth );
@@ -321,7 +321,7 @@ namespace LuaImGui
         const char* line_name_str = lua_tostring( L, 2 );
         const double dx = lua_tonumber( L, 3 );
 
-        ImguiDisplay::Call( L, [
+        ImGuiDisplay::Call( L, [
             line_name_string = std::string( line_name_str ),
             dx,
             y_values = std::move( ReadVector( L, 4 ) )
@@ -337,7 +337,7 @@ namespace LuaImGui
     {
         const int depth = Frame( L );
         const char* line_name_str = lua_tostring( L, 2 );
-        ImguiDisplay::Call( L, [
+        ImGuiDisplay::Call( L, [
             line_name_string = std::string( line_name_str ),
             positions = std::move(ReadVector( L, 3 ))
         ] {
@@ -352,7 +352,7 @@ namespace LuaImGui
     {
         const int depth = Frame( L );
         const char* line_name_str = lua_tostring( L, 2 );
-        ImguiDisplay::Call( L, [
+        ImGuiDisplay::Call( L, [
             line_name_string = std::string( line_name_str ),
             positions = std::move( ReadVector( L, 3 ) )
         ] {
@@ -370,7 +370,7 @@ namespace LuaImGui
         lua_call( L, 1, 1 );
 
         const char* str = lua_tostring( L, -1 );
-        ImguiDisplay::Log( str );
+        ImGuiDisplay::Log( str );
         lua_pop( L, 1 );
         return 0;
     }

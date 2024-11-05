@@ -20,16 +20,18 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 
-lua_imgui_path = lua_imgui_path or LockOn_Options.script_path.."LuaImGui"
+lua_imgui_dll_path = lua_imgui_dll_path or LockOn_Options.script_path.."LuaImGui"
+lua_imgui_lua_path = lua_imgui_lua_path or LockOn_Options.script_path .. "LuaImGui"
 
 function require_imgui()
-  package.cpath = package.cpath..";"..lua_imgui_path.."\\?.dll"
-  success,result = pcall(require,'LuaImGui')
-  return result
+    package.cpath = package.cpath .. ";" .. lua_imgui_dll_path .. "\\?.dll"
+    success, result = pcall(require, 'LuaImGui')
+    print_message_to_user(tostring(success).." "..tostring(result))
+    return result
 end
 
 function require_imgui_stubs()
-    package.path = package.path..";"..lua_imgui_path.."\\?.lua"
+    package.path = package.path .. ";" .. lua_imgui_lua_path .. "\\?.lua"
     return require("ImGuiStubs")
 end
 

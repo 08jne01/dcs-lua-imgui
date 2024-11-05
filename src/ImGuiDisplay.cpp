@@ -5,11 +5,14 @@
 #include <imgui.h>
 #include "Fonts/Fonts.h"
 
-ImguiDisplay ImguiDisplay::display;
+std::optional<ImGuiDisplay> ImGuiDisplay::display = std::make_optional<ImGuiDisplay>(); // Value Initialization
 
-void ImguiDisplay::AddImguiItem( const std::string& menu, const std::string& name, std::function<void( lua_State*, std::string item, bool*)>&& imgui_function )
+void ImGuiDisplay::AddImGuiItem( const std::string& menu, const std::string& name, std::function<void()> imgui_function )
 {
-    Menu& imgui_menu = display.menus[menu];
+    if ( ! display.has_value() )
+        return;
+
+    Menu& imgui_menu = display->menus[menu];
     imgui_menu.items.emplace_back();
 
     MenuItem& imgui_menu_item = imgui_menu.items.back();
@@ -17,18 +20,33 @@ void ImguiDisplay::AddImguiItem( const std::string& menu, const std::string& nam
     imgui_menu_item.name = name;
 }
 
-void ImguiDisplay::DisplayHook()
+void ImGuiDisplay::AddLuaImGuiItem( const std::string& menu, const std::string& name, std::function<void( lua_State*, std::string item, bool*)> imgui_function )
 {
-    display.Display();
+    if ( ! display.has_value() )
+        return;
+
+    LuaMenu& imgui_menu = display->lua_menus[menu];
+    imgui_menu.items.emplace_back();
+
+    LuaMenuItem& imgui_menu_item = imgui_menu.items.back();
+    imgui_menu_item.imgui_function = std::move( imgui_function );
+    imgui_menu_item.name = name;
+}
+
+void ImGuiDisplay::DisplayHook()
+{
+    if ( display )
+        display->Display();
 }
 
 
-void ImguiDisplay::RefreshDisplay( lua_State* L )
+void ImGuiDisplay::RefreshDisplay( lua_State* L )
 {
-    display.Refresh(L);
+    if ( display )
+        display->Refresh(L);
 }
 
-void ImguiDisplay::SetupHook()
+void ImGuiDisplay::SetupHook()
 {
     ImGuiIO& io = ImGui::GetIO();
     void* bytes;
@@ -36,17 +54,15 @@ void ImguiDisplay::SetupHook()
     io.Fonts->AddFontFromMemoryTTF( bytes, static_cast<int>( n_bytes ), 14.0f, NULL, io.Fonts->GetGlyphRangesDefault() );
 }
 
-ImguiDisplay::ImguiDisplay()
+void ImGuiDisplay::CreateHook()
 {
-
-}
-
-void ImguiDisplay::CreateHook()
-{
-    if ( display.hook_created )
+    if ( ! display.has_value() )
         return;
 
-    display.hook_created = true; // creat hook only once
+    if ( display->hook_created )
+        return;
+
+    display->hook_created = true; // creat hook only once
     FmGuiConfig config;
     config.imGuiStyle = FmGuiStyle::CLASSIC;
 
@@ -64,7 +80,8 @@ void ImguiDisplay::CreateHook()
     }
 }
 
-ImguiDisplay::~ImguiDisplay()
+
+ImGuiDisplay::~ImGuiDisplay()
 {
     error = true;
     FmGui::SetInputRoutinePtr( nullptr );
@@ -76,7 +93,7 @@ ImguiDisplay::~ImguiDisplay()
     }
 }
 
-void ImguiDisplay::Refresh( lua_State* L )
+void ImGuiDisplay::Refresh( lua_State* L )
 {
     if ( hidden )
         return;
@@ -84,12 +101,12 @@ void ImguiDisplay::Refresh( lua_State* L )
     if ( error )
         return;
     
-    if ( menus.empty() )
+    if ( menus.empty() && lua_menus.empty() )
         return;
 
     commands[L].clear();
 
-    for ( auto& [menu_name, menu] : menus )
+    for ( auto& [menu_name, menu] : lua_menus )
     {
         for ( auto& menu_item : menu.items )
         {
@@ -111,13 +128,62 @@ void ImguiDisplay::Refresh( lua_State* L )
     }
 
     // Copy to render thread.
-    std::unique_lock lock( display.command_mtx );
+    std::unique_lock lock( command_mtx );
     completed_commands[L] = std::move( commands[L] );
 
 }
 
-void ImguiDisplay::Display()
+void ImGuiDisplay::InitializeContextFunctions()
 {
+    if ( ctx == nullptr )
+        return;
+
+    if ( alloc == nullptr )
+        return;
+
+    if ( plot_ctx == nullptr )
+        return;
+
+    ctx( ImGui::GetCurrentContext() );
+
+    ImGuiMemAllocFunc p_alloc_func;
+    ImGuiMemFreeFunc p_free_func;
+    void* p_user_data;
+    ImGui::GetAllocatorFunctions( &p_alloc_func, &p_free_func, &p_user_data );
+    alloc( p_alloc_func, p_free_func, p_user_data );
+    plot_ctx( ImPlot::GetCurrentContext() );
+    initialize_remote_context = false;
+}
+
+void ImGuiDisplay::DrawCppImGui()
+{
+    for ( auto& [menu_name, menu] : menus )
+    {
+        for ( auto& menu_item : menu.items )
+        {
+
+            if ( ! menu_item.visible )
+            {
+                continue;
+            }
+
+            std::string path = menu_name + "/" + menu_item.name;
+
+            if ( ImGui::Begin( path.c_str(), &menu_item.visible ) )
+            {
+                if ( menu_item.imgui_function )
+                    menu_item.imgui_function();
+                ImGui::End();
+            }
+        }
+    }
+}
+
+void ImGuiDisplay::Display()
+{
+    if ( initialize_remote_context )
+        InitializeContextFunctions();
+
     if ( hidden )
         return;
 
@@ -149,33 +215,39 @@ void ImguiDisplay::Display()
         }
 
        
-        std::unique_lock lock( display.command_mtx );
+        std::unique_lock lock( command_mtx );
 
         if ( console_open )
             console.Draw( "Console", console_open );
 
-        for ( auto& [menu_name, menu] : menus )
-        {
-            if ( ! ImGui::BeginMenu( menu_name.c_str() ) )
+        auto draw_menus = [this]( auto& menus_in ) {
+            for ( auto& [menu_name, menu] : menus_in )
             {
-                continue;
-            }
-
-            for ( auto& menu_item : menu.items )
-            {
-                if ( ImGui::MenuItem( menu_item.name.c_str() ) )
+                if ( ! ImGui::BeginMenu( menu_name.c_str() ) )
                 {
-                    menu_item.visible = true;
+                    continue;
                 }
+
+                for ( auto& menu_item : menu.items )
+                {
+                    if ( ImGui::MenuItem( menu_item.name.c_str() ) )
+                    {
+                        menu_item.visible = true;
+                    }
+                }
+                ImGui::EndMenu();
             }
-            ImGui::EndMenu();
-        }
+        };
+
+        draw_menus( menus );
+        draw_menus( lua_menus );
 
         ImGui::EndMainMenuBar();
     }
 
+    DrawCppImGui();
 
-    std::unique_lock lock( display.command_mtx );
+    std::unique_lock lock( command_mtx );
     int allowed_depth = 0;
 
     for ( auto& [L, L_commands] : completed_commands )
