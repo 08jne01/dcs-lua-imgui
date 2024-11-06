@@ -26,7 +26,9 @@ lua_imgui_lua_path = lua_imgui_lua_path or LockOn_Options.script_path .. "LuaImG
 function require_imgui()
     package.cpath = package.cpath .. ";" .. lua_imgui_dll_path .. "\\?.dll"
     success, result = pcall(require, 'LuaImGui')
-    print_message_to_user(tostring(success).." "..tostring(result))
+    if not success then
+        print_message_to_user("LuaImGui failed to load dll - See Log")
+    end
     return result
 end
 
