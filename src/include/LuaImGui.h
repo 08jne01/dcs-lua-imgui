@@ -9,6 +9,7 @@
 namespace LuaImGui
 {
     //// ImGui Interface
+    LUA_IMGUI_API void Log( const char* s );
     LUA_IMGUI_API void AddItem( const std::string& menu, const std::string& name, std::function<void()> imgui_function );
 
     // Do not call these in dllmain

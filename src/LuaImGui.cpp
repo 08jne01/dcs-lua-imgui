@@ -6,7 +6,7 @@ extern "C"
 #include "lauxlib.h"
 }
 
-#include <future>
+#include <format>
 #include "imgui.h"
 #include "implot.h"
 
@@ -30,7 +30,8 @@ extern "C"
 
 namespace LuaImGui
 {
-    void Log( lua_State* L, int idx )
+
+    void LogError( lua_State* L, int idx )
     {   
         lua_getglobal( L, "log" );
         int log = lua_gettop( L );
@@ -49,6 +50,16 @@ namespace LuaImGui
 
         lua_call( L, 3, 0 );
         lua_pop( L, 1 );
+    }
+
+    // Longjumps away never returns
+    void RaiseError( lua_State* L, const char* str )
+    {
+        lua_Debug debug_info;
+        lua_getstack(L, 1, &debug_info);
+        lua_getinfo(L, "l", &debug_info);
+        lua_pushstring( L, std::format("Line {} -> {}", debug_info.currentline, str ).c_str() );
+        lua_error(L);
     }
 
     void Print( lua_State* L, int idx )
@@ -79,7 +90,7 @@ namespace LuaImGui
             int error = lua_pcall( L, 0, 0, 0 );
             if ( error )
             {
-                Log( L, lua_gettop(L) );
+                LogError( L, lua_gettop(L) );
                 lua_pop( L, 1 );
                 ImGuiDisplay::Error();
             }
@@ -125,31 +136,46 @@ namespace LuaImGui
 
     int l_AddItem( lua_State* L )
     {
-        if ( lua_isfunction( L, 3 ) )
+        if ( ! lua_isstring( L, 1 ) )
         {
-            const char* menu = lua_tostring( L, 1 );
-            const char* name = lua_tostring( L, 2 );
-            
-            LuaFunction function( L, 3 );
-            ImGuiDisplay::AddLuaImGuiItem( menu, name, [function, L]( lua_State* context, std::string path, bool* control) {
-                if ( L != context ) // Only execute when being called from correct callstack (luastate).
-                    return;
-
-                // Start Window
-                ImGuiDisplay::Call( L, [path](bool* out) {
-                    return ImGui::Begin( path.c_str(), out);
-                }, 0, control);
-
-                // Call Lua
-                function.Call();
-
-                // End Window
-                ImGuiDisplay::Call( L, []() {
-                    ImGui::End();
-                    return true;
-                }, 0);
-            });
+            RaiseError( L, "String Expected for Param 1: Did you call ImGui:AddItem? Should be ImGui.AddItem" );
+            return 0;
         }
+
+        if ( ! lua_isstring( L, 2 ) )
+        {
+            RaiseError( L, "String Expected for Param 2" );
+            return 0;
+        }
+
+        if ( ! lua_isfunction( L, 3 ) )
+        {
+            RaiseError( L, "Function Expected for Param 3: Did you call ImGui:AddItem? Should be ImGui.AddItem" );
+            return 0;
+        }
+
+        const char* menu = lua_tostring( L, 1 );
+        const char* name = lua_tostring( L, 2 );
+
+        LuaFunction function( L, 3 );
+        ImGuiDisplay::AddLuaImGuiItem( menu, name, [function, L]( lua_State* context, std::string path, bool* control ) {
+            if ( L != context ) // Only execute when being called from correct callstack (luastate).
+                return;
+
+            // Start Window
+            ImGuiDisplay::Call( L, [path]( bool* out ) {
+                return ImGui::Begin( path.c_str(), out );
+                }, 0, control );
+
+            // Call Lua
+            function.Call();
+
+            // End Window
+            ImGuiDisplay::Call( L, []() {
+                ImGui::End();
+                return true;
+            }, 0 );
+        } );
 
         return 0;
     }
@@ -242,8 +268,7 @@ namespace LuaImGui
     {
         if ( ! lua_isboolean( L, 1 ) )
         {
-            lua_pushstring( L, "ImGui.MenuBar(param) -> parameter was not a boolean, did you call with : instead of . ?" );
-            Log( L, lua_gettop( L ) );
+            RaiseError( L, "Bool Expected for Param 1: Did you call with ImGui:MenuBar? Should be ImGui.MenuBar" );
             lua_pop( L, 1 );
             return 0;
         }

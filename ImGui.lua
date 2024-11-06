@@ -42,8 +42,6 @@ else
     ImGui = require_imgui()
 end
 
-ImGui = require_imgui()
-
 function ImGui:Window(name, f)
     self:Begin(name)
     f()
@@ -107,6 +105,10 @@ end
 
 function ImGui.Serialize(t, depth, seen)
     
+    if t == ImGui then
+        error("Did you call ImGui:Serialize? Should be ImGui.Serialize")
+    end
+
     if t == nil then
         return "nil"
     end
@@ -130,14 +132,31 @@ function ImGui.Serialize(t, depth, seen)
 
     local output = "{\n"
 
-    local strings = {}
-    for i,v in pairs(t) do
+    local i_strings = {}
+    for i, v in ipairs(t) do
         if type(v) == 'table' then
-            table.insert(strings, next_space..i.." = "..ImGui.Serialize(v, depth + 1, seen))
+            table.insert(i_strings, next_space..ImGui.Serialize(v, depth + 1, seen))
         elseif type(v) == 'string' then
-            table.insert(strings, next_space..i..string.format(" = \"%s\"", v))
+            table.insert(i_strings, next_space..i..string.format("\"%s\"", v))
         else
-            table.insert(strings, next_space..i.." = "..tostring(v))
+            table.insert(i_strings, next_space..tostring(v))
+        end
+    end
+
+    
+
+
+    local strings = {}
+    for i, v in pairs(t) do
+
+        if i_strings[i] == nil then -- check it hasn't been included in i_strings already
+            if type(v) == 'table' then
+                table.insert(strings, next_space..i.." = "..ImGui.Serialize(v, depth + 1, seen))
+            elseif type(v) == 'string' then
+                table.insert(strings, next_space..i..string.format(" = \"%s\"", v))
+            else
+                table.insert(strings, next_space..i.." = "..tostring(v))
+            end
         end
     end
 
@@ -145,15 +164,14 @@ function ImGui.Serialize(t, depth, seen)
     if mt ~= nil then
         table.insert( strings, next_space..string.format("metatable(%s) = ", tostring(getmetatable(t)))..ImGui.Serialize(getmetatable(t), depth + 1, seen))
     end
-    -- for i,v in pairs(getmetatable(t)) do
-    --     if type(v) == 'table' then
-    --         table.insert(strings, i.." = "..next_space..Serialize(t, depth + 1, seen))
-    --     else
-    --         table.insert(strings, i.." = "..next_space..tostring(v))
-    --     end
-    -- end
 
-    output = output..table.concat(strings, ',\n')..'\n'
+    strings = table.concat(strings, ',\n')
+    
+    if #i_strings > 0 then
+        i_strings = table.concat(i_strings, ',\n')
+        strings = table.concat({i_strings, strings}, ',\n')
+    end
+    output = output..strings..'\n'
 
     output = output..space.."}"
     return output

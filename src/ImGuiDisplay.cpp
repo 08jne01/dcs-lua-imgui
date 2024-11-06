@@ -18,6 +18,9 @@ void ImGuiDisplay::AddImGuiItem( const std::string& menu, const std::string& nam
     MenuItem& imgui_menu_item = imgui_menu.items.back();
     imgui_menu_item.imgui_function = std::move( imgui_function );
     imgui_menu_item.name = name;
+
+    
+    Log( std::format( "[IMGUI][C++] Added {}/{}", menu, name ).c_str() );
 }
 
 void ImGuiDisplay::AddLuaImGuiItem( const std::string& menu, const std::string& name, std::function<void( lua_State*, std::string item, bool*)> imgui_function )
@@ -31,6 +34,8 @@ void ImGuiDisplay::AddLuaImGuiItem( const std::string& menu, const std::string& 
     LuaMenuItem& imgui_menu_item = imgui_menu.items.back();
     imgui_menu_item.imgui_function = std::move( imgui_function );
     imgui_menu_item.name = name;
+
+    Log( std::format( "[IMGUI][Lua] Added {}/{}", menu, name ).c_str() );
 }
 
 void ImGuiDisplay::DisplayHook()
@@ -215,8 +220,6 @@ void ImGuiDisplay::Display()
         }
 
        
-        std::unique_lock lock( command_mtx );
-
         if ( console_open )
             console.Draw( "Console", console_open );
 

@@ -3,7 +3,7 @@
 #
 cmake_minimum_required (VERSION 3.20)
 
-project(LuaImGui DESCRIPTION "Lua Library for use with DCS to Create ImGui windows")
+project(LuaImGui DESCRIPTION "Lua (and optionally C++) Library for use with DCS to Create ImGui windows")
 
 file(GLOB_RECURSE source_list "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c" "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" )
 file(GLOB_RECURSE headers_list "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp" )
@@ -65,7 +65,8 @@ endif()
 
 add_subdirectory("ext/minhook")
 
-set_target_properties( LuaImGui PROPERTIES 
+set_target_properties( LuaImGui PROPERTIES
+    MSVC_RUNTIME_LIBRARY "MultiThreadedDLL"
     ARCHIVE_OUTPUT_DIRECTORY  "${CMAKE_CURRENT_SOURCE_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY  "${CMAKE_CURRENT_SOURCE_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
@@ -95,8 +96,11 @@ target_include_directories( LuaImGui
     "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
 )
 
-add_custom_command( TARGET LuaImGui POST_BUILD
-    COMMAND "${CMAKE_COMMAND}"
-    -E copy "$<TARGET_FILE:LuaImGui>" "${CMAKE_SOURCE_DIR}/bin/$<TARGET_FILE_NAME:LuaImGui>" 
-    COMMENT "Copying LuaImGui to bin"
-)
+MESSAGE(INFO " LUA BIN PATH: ${LUA_IMGUI_BIN_PATH}")
+if ( ${LUA_IMGUI_BIN_PATH} )
+    add_custom_command(TARGET LuaImGui POST_BUILD
+        COMMAND "${CMAKE_COMMAND}"
+        -E copy "$<TARGET_FILE:LuaImGui>" "${LUA_IMGUI_BIN_PATH}/$<TARGET_FILE_NAME:LuaImGui>"
+        COMMENT "Copying LuaImGui to bin"
+    )
+endif()
