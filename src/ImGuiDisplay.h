@@ -15,6 +15,16 @@ struct lua_State;
 
 class ImGuiDisplay
 {
+    static bool consteval IsDisabled()
+    {
+#ifdef LUA_IMGUI_DISABLED
+        return true;
+#else
+        return false;
+#endif
+    }
+
+
 
 public:
 

@@ -9,6 +9,9 @@ std::optional<ImGuiDisplay> ImGuiDisplay::display = std::make_optional<ImGuiDisp
 
 void ImGuiDisplay::AddImGuiItem( const std::string& menu, const std::string& name, std::function<void()> imgui_function )
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( ! display.has_value() )
         return;
 
@@ -25,6 +28,9 @@ void ImGuiDisplay::AddImGuiItem( const std::string& menu, const std::string& nam
 
 void ImGuiDisplay::AddLuaImGuiItem( const std::string& menu, const std::string& name, std::function<void( lua_State*, std::string item, bool*)> imgui_function )
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( ! display.has_value() )
         return;
 
@@ -40,6 +46,9 @@ void ImGuiDisplay::AddLuaImGuiItem( const std::string& menu, const std::string& 
 
 void ImGuiDisplay::DisplayHook()
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( display )
         display->Display();
 }
@@ -47,12 +56,18 @@ void ImGuiDisplay::DisplayHook()
 
 void ImGuiDisplay::RefreshDisplay( lua_State* L )
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( display )
         display->Refresh(L);
 }
 
 void ImGuiDisplay::SetupHook()
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     ImGuiIO& io = ImGui::GetIO();
     void* bytes;
     size_t n_bytes = fonts::GetConsolaTTF( ImGui::MemAlloc, bytes );
@@ -61,6 +76,9 @@ void ImGuiDisplay::SetupHook()
 
 void ImGuiDisplay::CreateHook()
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( ! display.has_value() )
         return;
 
@@ -88,6 +106,9 @@ void ImGuiDisplay::CreateHook()
 
 ImGuiDisplay::~ImGuiDisplay()
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     error = true;
     FmGui::SetInputRoutinePtr( nullptr );
     FmGui::SetRoutinePtr( nullptr );
@@ -100,6 +121,9 @@ ImGuiDisplay::~ImGuiDisplay()
 
 void ImGuiDisplay::Refresh( lua_State* L )
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( hidden )
         return;
 
@@ -140,6 +164,9 @@ void ImGuiDisplay::Refresh( lua_State* L )
 
 void ImGuiDisplay::InitializeContextFunctions()
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( ctx == nullptr )
         return;
 
@@ -162,6 +189,9 @@ void ImGuiDisplay::InitializeContextFunctions()
 
 void ImGuiDisplay::DrawCppImGui()
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     for ( auto& [menu_name, menu] : menus )
     {
         for ( auto& menu_item : menu.items )
@@ -186,6 +216,9 @@ void ImGuiDisplay::DrawCppImGui()
 
 void ImGuiDisplay::Display()
 {
+    if constexpr ( IsDisabled() )
+        return;
+
     if ( initialize_remote_context )
         InitializeContextFunctions();
 
