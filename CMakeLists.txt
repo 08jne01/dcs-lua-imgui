@@ -96,8 +96,9 @@ target_include_directories( LuaImGui
     "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
 )
 
-MESSAGE(INFO " LUA BIN PATH: ${LUA_IMGUI_BIN_PATH}")
-if ( ${LUA_IMGUI_BIN_PATH} )
+#MESSAGE(INFO " LUA BIN PATH: ${LUA_IMGUI_BIN_PATH}")
+if ( LUA_IMGUI_BIN_PATH )
+    MESSAGE(INFO " WILL COPY LuaImGui.dll TO ${LUA_IMGUI_BIN_PATH}")
     add_custom_command(TARGET LuaImGui POST_BUILD
         COMMAND "${CMAKE_COMMAND}"
         -E copy "$<TARGET_FILE:LuaImGui>" "${LUA_IMGUI_BIN_PATH}/$<TARGET_FILE_NAME:LuaImGui>"
