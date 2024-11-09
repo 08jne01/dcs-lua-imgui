@@ -167,24 +167,31 @@ void ImGuiDisplay::InitializeContextFunctions()
     if constexpr ( IsDisabled() )
         return;
 
-    if ( ctx == nullptr )
-        return;
+    std::unique_lock lock(command_mtx);
 
-    if ( alloc == nullptr )
-        return;
+    for ( auto& [ctx, alloc, plot_ctx] : contexts )
+    {
+        if ( ctx == nullptr )
+            return; 
 
-    if ( plot_ctx == nullptr )
-        return;
+        if ( alloc == nullptr )
+            return;
 
-    ctx( ImGui::GetCurrentContext() );
+        if ( plot_ctx == nullptr )
+            return;
 
-    ImGuiMemAllocFunc p_alloc_func;
-    ImGuiMemFreeFunc p_free_func;
-    void* p_user_data;
-    ImGui::GetAllocatorFunctions( &p_alloc_func, &p_free_func, &p_user_data );
-    alloc( p_alloc_func, p_free_func, p_user_data );
-    plot_ctx( ImPlot::GetCurrentContext() );
-    initialize_remote_context = false;
+        ctx( ImGui::GetCurrentContext() );
+
+        ImGuiMemAllocFunc p_alloc_func;
+        ImGuiMemFreeFunc p_free_func;
+        void* p_user_data;
+        ImGui::GetAllocatorFunctions( &p_alloc_func, &p_free_func, &p_user_data );
+        alloc( p_alloc_func, p_free_func, p_user_data );
+        plot_ctx( ImPlot::GetCurrentContext() );
+        initialize_remote_context = false;
+    }
+
+    contexts.clear();
 }
 
 void ImGuiDisplay::DrawCppImGui()
@@ -219,7 +226,7 @@ void ImGuiDisplay::Display()
     if constexpr ( IsDisabled() )
         return;
 
-    if ( initialize_remote_context )
+    if ( ! contexts.empty() )
         InitializeContextFunctions();
 
     if ( hidden )

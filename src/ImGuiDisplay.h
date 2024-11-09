@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <Windows.h>
 #include <optional>
 #include <future>
 #include "ThreadSafeQueue.h"
@@ -131,19 +130,23 @@ public:
         if ( ! display.has_value() )
             return;
 
-        display->initialize_remote_context = true;
-        display->ctx = ctx;
-        display->alloc = alloc;
-        display->plot_ctx = plot_ctx;
-        
+        std::unique_lock lock(display->command_mtx);
+        display->contexts.emplace_back(ctx, alloc, plot_ctx);
     }
 
 private:
 
+    struct ImGuiCtx
+    {
+        LuaImGui::ImGuiSetContextRoutine ctx = nullptr;
+        LuaImGui::ImGuiSetAllocatorRoutine alloc = nullptr;
+        LuaImGui::ImPlotSetContextRoutine plot_ctx = nullptr;   
+    };
+
+    std::vector<ImGuiCtx> contexts;
+
     // C++ context in another dll
-    LuaImGui::ImGuiSetContextRoutine ctx = nullptr;
-    LuaImGui::ImGuiSetAllocatorRoutine alloc = nullptr;
-    LuaImGui::ImPlotSetContextRoutine plot_ctx = nullptr;
+    
     bool initialize_remote_context = false;
 
     bool style_editor_open = false;
