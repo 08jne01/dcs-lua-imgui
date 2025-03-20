@@ -42,8 +42,8 @@ Requires cmake, ninja and VS Toolchain (usually all included with Visual Studio 
         2. Select x64-release
         3. In the command pallet run ```CMake: Build```
     - Command Line - CMake with Ninja (VS Developer Command Prompt):
-        1. ```cmake -G ninja .```
-        2. ```cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_INSTALL_PREFIX=./dcs-lua-imgui/out/install/x64-release -S. -B./out/build/x64-release -G Ninja```
+        1. ```cmake -G "Ninja" .```
+        2. ```cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=cl.exe -DCMAKE_C_FLAGS="/MACHINE:X64" -DCMAKE_CXX_FLAGS="/MACHINE:X64" -DCMAKE_CXX_COMPILER=cl.exe -DCMAKE_INSTALL_PREFIX=./dcs-lua-imgui/out/install/x64-release -S. -B./out/build/x64-release -G Ninja```
         3. ```cmake --build out/build/x64-release --parallel 30```
 
 2. Copy LuaImGui folder to Cockpit/Scripts (if it isn't there)
