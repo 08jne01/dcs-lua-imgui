@@ -20,13 +20,13 @@ extern "C"
 //    lua_pushcfunction(L, function) \
 //    lua_setfield(L, -2, name)
 
-#define REGISTER_FUNCTION(function) { #function, l_##function }
+#define REGISTER_FUNCTION(function) { #function, l_ ## function }
 
-#define CONTROL_PUSH( function ) l_ControlFlowPush<[]( const char* c ) { return function(c); }>
-#define CONTROL_POP( function ) l_ControlFlowPop<[]() { return function(); }>
+#define CONTROL_PUSH( function ) l_ControlFlowPush<[]( const char* c ) { return ImGui::function(c); }>
+#define CONTROL_POP( function ) l_ControlFlowPop<[]() { return ImGui::function(); }>
 
-#define REGISTER_CONTROL_PUSH(function) { #function, CONTROL_PUSH(ImGui::##function)}
-#define REGISTER_CONTROL_POP(function) { #function, CONTROL_POP(ImGui::##function)}
+#define REGISTER_CONTROL_PUSH(function) { #function, CONTROL_PUSH(function)}
+#define REGISTER_CONTROL_POP(function) { #function, CONTROL_POP(function)}
 
 namespace LuaImGui
 {
@@ -407,13 +407,13 @@ namespace LuaImGui
 
         static const luaL_Reg functions[] = {
             // Control
-            REGISTER_CONTROL_PUSH( BeginTabBar ),
-            REGISTER_CONTROL_POP( EndTabBar ),
-            REGISTER_CONTROL_PUSH( BeginTabItem ),
-            REGISTER_CONTROL_POP( EndTabItem ),
-            REGISTER_CONTROL_PUSH( TreeNode ),
-            REGISTER_CONTROL_POP( TreePop ),
-            REGISTER_CONTROL_PUSH( CollapsingHeader ),
+            REGISTER_CONTROL_PUSH(BeginTabBar),
+            REGISTER_CONTROL_POP(EndTabBar),
+            REGISTER_CONTROL_PUSH(BeginTabItem),
+            REGISTER_CONTROL_POP(EndTabItem),
+            REGISTER_CONTROL_PUSH(TreeNode),
+            REGISTER_CONTROL_POP(TreePop),
+            REGISTER_CONTROL_PUSH(CollapsingHeader),
             REGISTER_FUNCTION( Pop ),
 
             REGISTER_FUNCTION( BeginPlot ),
