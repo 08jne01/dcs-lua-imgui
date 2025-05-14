@@ -1,8 +1,12 @@
 out/
 .vs/
 .vscode/
+CMakeFiles/
 *.dll
 *.exp
 *.lib
 *.ilk
 *.pdb
+build.ninja
+cmake_install.cmake
+CMakeCache.txt
