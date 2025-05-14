@@ -156,14 +156,17 @@ namespace LuaImGui
 
         const char* menu = lua_tostring( L, 1 );
         const char* name = lua_tostring( L, 2 );
+        float width = luaL_optnumber( L, 4, 500 );
+        float height = luaL_optnumber( L, 5, 300 );
 
         LuaFunction function( L, 3 );
-        ImGuiDisplay::AddLuaImGuiItem( menu, name, [function, L]( lua_State* context, std::string path, bool* control ) {
+        ImGuiDisplay::AddLuaImGuiItem( menu, name, [function, L, width, height]( lua_State* context, std::string path, bool* control ) {
             if ( L != context ) // Only execute when being called from correct callstack (luastate).
                 return;
 
             // Start Window
-            ImGuiDisplay::Call( L, [path]( bool* out ) {
+            ImGuiDisplay::Call( L, [path, width, height]( bool* out ) {
+                ImGui::SetNextWindowSize( ImVec2(width, height), ImGuiCond_FirstUseEver );
                 return ImGui::Begin( path.c_str(), out );
                 }, 0, control );
 
