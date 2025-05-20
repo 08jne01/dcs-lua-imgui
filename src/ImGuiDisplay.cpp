@@ -159,7 +159,6 @@ void ImGuiDisplay::Refresh( lua_State* L )
     // Copy to render thread.
     std::unique_lock lock( command_mtx );
     completed_commands[L] = std::move( commands[L] );
-
 }
 
 void ImGuiDisplay::InitializeContextFunctions()
@@ -299,7 +298,10 @@ void ImGuiDisplay::Display()
         {
             if ( c.depth <= allowed_depth )
             {
-                if ( c.command( c.control ) )
+                // Here we visit the correct command type.
+                // Only control statements increase the depth.
+                // Immediate statements keep it the same.
+                if ( std::visit(c, c.command) )
                 {
                     allowed_depth = c.depth + 1;
                 }

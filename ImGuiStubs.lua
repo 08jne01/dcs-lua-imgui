@@ -50,6 +50,11 @@ ImGui:Stub("Text")
 ImGui:Stub("Columns")
 ImGui:Stub("NextColumn")
 
+ImGui:Stub("Button")
+ImGui:Stub("InputFloat")
+ImGui:Stub("DragFloat")
+ImGui:Stub("ListBox")
+
 ImGui:Stub("AddItem")
 ImGui:Stub("Refresh")
 ImGui:Stub("MenuBar")

@@ -45,36 +45,59 @@ else
 end
 
 function ImGui:Window(name, f)
+    if imgui_disabled then
+        return
+    end
+
     self:Begin(name)
     f()
     self:End()
 end
 
 function ImGui:Tree(name, f)
+    if imgui_disabled then
+        return
+    end
+
     self:TreeNode(name)
     f()
     self:TreePop()
 end
 
 function ImGui:Header(name, f)
+    if imgui_disabled then
+        return
+    end
+
     self:CollapsingHeader(name)
     f()
     self:Pop() -- Since Collapsing Header doesn't have a end function
 end
 
 function ImGui:TabBar(name, f)
+    if imgui_disabled then
+        return
+    end
+
     self:BeginTabBar(name)
     f()
     self:EndTabBar()
 end
 
 function ImGui:TabItem(name, f)
+    if imgui_disabled then
+        return
+    end
+
     self:BeginTabItem(name)
     f()
     self:EndTabItem()
 end
 
 function ImGui:Table(t)
+    if imgui_disabled then
+        return
+    end
 
     if type(t) ~= 'table' then
         return
@@ -98,12 +121,36 @@ function ImGui:Table(t)
     self:Columns(1)
 end
 
+function ImGui.Identifier()
+    local info = debug.getinfo(3)
+    return string.format("%s : %d", tostring(info.func), info.currentline)
+end
+
 function ImGui:Plot(plot_name, x_axis_name, y_axis_name, width, f)
+    if imgui_disabled then
+        return
+    end
+
     ImGui:BeginPlot(plot_name, x_axis_name, y_axis_name, width)
     f()
     ImGui:EndPlot()
 end
 
+function ImGui:Button(name)
+    return ImGui:ButtonInternal(ImGui.Identifier(), name)
+end
+
+function ImGui:ListBox(name, value, items)
+    return ImGui:ListBoxInternal(ImGui.Identifier(), name, value, items)
+end
+
+function ImGui:DragFloat(name, value, speed, min, max)
+    return ImGui:DragFloatInternal(ImGui.Identifier(), name, value, speed, min, max)
+end
+
+function ImGui:InputFloat(name, value, step, step_fast)
+    return ImGui:InputFloatInternal(ImGui.Identifier(), name, value, step, step_fast)
+end
 
 function ImGui.Serialize(t, depth, seen)
     

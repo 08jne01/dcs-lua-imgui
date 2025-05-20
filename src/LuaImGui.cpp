@@ -31,6 +31,48 @@ extern "C"
 namespace LuaImGui
 {
 
+    template<typename T>
+    T ToValue( lua_State* L, int idx );
+
+    template<>
+    double ToValue( lua_State* L, int idx )
+    {
+        return lua_tonumber(L, idx);
+    }
+
+    template<>
+    const char* ToValue( lua_State* L, int idx )
+    {
+        return lua_tostring(L, idx);
+    }
+
+    template<>
+    int ToValue( lua_State* L, int idx )
+    {
+        return lua_tointeger(L, idx);
+    }
+
+    template<typename T>
+    std::vector<T> ReadVector( lua_State* L, int idx )
+    {
+        std::vector<T> values;
+        for ( int i = 1; ; i++ )
+        {
+            lua_rawgeti( L, idx, i );
+            if ( lua_isnil( L, -1 ) )
+            {
+                lua_pop( L, 1 );
+                break;
+            }
+
+            const T y = ToValue<T>( L, -1 );
+            values.emplace_back( y );
+            lua_pop( L, 1 );
+        }
+
+        return values;
+    }
+
     void LogError( lua_State* L, int idx )
     {   
         lua_getglobal( L, "log" );
@@ -229,7 +271,7 @@ namespace LuaImGui
     {
         int depth = PushFrame( L );
         const char* str = lua_tostring( L, 2 );
-        ImGuiDisplay::Call( L, [string = std::string( str )] {
+        ImGuiDisplay::Call( L, [string = std::string( str )](bool*) {
             return function( string.c_str() );
             }, depth );
         return 0;
@@ -298,13 +340,13 @@ namespace LuaImGui
             y_axis_string = std::string( y_axis_str ),
             width
         ] {
-            return ImPlot::BeginPlot( 
-                plot_name_string.c_str(),  
-                x_axis_string.c_str(),
-                y_axis_string.c_str(),
-                ImVec2(width, 0),
-                ImPlotFlags_NoBoxSelect | ImPlotFlags_AntiAliased, ImPlotAxisFlags_None, ImPlotAxisFlags_None
-            );
+            if ( ImPlot::BeginPlot( plot_name_string.c_str(), ImVec2(width, 0), ImPlotFlags_NoBoxSelect | ImPlotFlags_AntiAliased ) )
+            {
+                ImPlot::SetupAxis(ImAxis_X1, x_axis_string.c_str());
+                ImPlot::SetupAxis(ImAxis_Y1, y_axis_string.c_str());
+                return true;
+            }
+            return false;
         }, depth );
 
         return 0;
@@ -322,24 +364,134 @@ namespace LuaImGui
         return 0;
     }
 
-    std::vector<double> ReadVector( lua_State* L, int idx )
+    int l_ListBoxInternal(lua_State* L)
     {
-        std::vector<double> values;
-        for ( int i = 1; ; i++ )
-        {
-            lua_rawgeti( L, idx, i );
-            if ( lua_isnil( L, -1 ) )
-            {
-                lua_pop( L, 1 );
-                break;
-            }
+        const int depth = Frame( L );
+        const char* source_identifier = lua_tostring(L, 2);
+        const char* name_str = lua_tostring( L, 3 );
+        const int value = int(lua_tointeger(L, 4));
 
-            const double y = lua_tonumber( L, -1 );
-            values.push_back( y );
-            lua_pop( L, 1 );
-        }
+        
+        auto* result = ImGuiDisplay::GetResult(L, source_identifier);
+        if ( result == nullptr )
+            return 0;
 
-        return values;
+        if ( ! std::holds_alternative<int>(result->data) )
+            result->data = value;
+
+        std::vector<const char*> v = ReadVector<const char*>(L, 5);
+        std::vector<std::string> strings_vec(v.begin(), v.end());
+
+        ImGuiDisplay::Call(L, [=, name = std::string(name_str), strings = std::move(strings_vec)]{
+            int value_mut = value-1;
+            std::vector<const char*> string_ptrs;
+            string_ptrs.reserve(strings.size());
+            for ( auto& string : strings )
+                string_ptrs.push_back(string.c_str());
+
+            const bool changed = ImGui::ListBox(
+                name.c_str(), 
+                &value_mut,
+                string_ptrs.data(),
+                static_cast<int>(string_ptrs.size())
+            );
+            if ( changed ) // set only if changed
+                result->data = value_mut+1;
+        }, depth);
+
+        lua_pushinteger(L, std::get<int>(result->data));
+        return 1;
+    }
+
+    int l_DragFloatInternal(lua_State* L)
+    {
+        const int depth = Frame( L );
+        const char* source_identifier = lua_tostring(L, 2);
+        const char* name_str = lua_tostring( L, 3 );
+        const double value = lua_tonumber(L, 4);
+        const double speed = luaL_optnumber(L, 5, 1.0);
+        const double min = luaL_optnumber(L, 6, 0.0);
+        const double max = luaL_optnumber(L, 7, 0.0);
+
+        auto* result = ImGuiDisplay::GetResult(L, source_identifier);
+        if ( result == nullptr )
+            return 0;
+
+        if ( ! std::holds_alternative<double>(result->data) )
+            result->data = value;
+
+        ImGuiDisplay::Call(L, [=, name = std::string(name_str)]{
+            auto valuef = static_cast<float>(value);
+            const bool changed = ImGui::DragFloat(
+                name.c_str(), 
+                &valuef, 
+                static_cast<float>(speed),
+                static_cast<float>(min),
+                static_cast<float>(max)
+            );
+            if ( changed ) // set only if changed
+                result->data = static_cast<double>(valuef);
+        }, depth);
+
+        lua_pushnumber(L, std::get<double>(result->data));
+        return 1;
+    }
+
+    int l_InputFloatInternal(lua_State* L)
+    {
+        const int depth = Frame( L );
+        const char* source_identifier = lua_tostring(L, 2);
+        const char* name_str = lua_tostring( L, 3 );
+        const double value = lua_tonumber(L, 4);
+        const double step = luaL_optnumber(L, 5, 0.0);
+        const double step_fast = luaL_optnumber(L, 6, 0.0);
+
+        auto* result = ImGuiDisplay::GetResult(L, source_identifier);
+        if ( result == nullptr )
+            return 0;
+
+        if ( ! std::holds_alternative<double>(result->data) )
+            result->data = value;
+
+        ImGuiDisplay::Call(L, [=, name = std::string(name_str)]{
+            double value_mut = value;
+            const bool changed = ImGui::InputDouble(
+                name.c_str(), 
+                &value_mut, 
+                step,
+                step_fast
+            );
+            if ( changed ) // set only if changed
+                result->data = value_mut;
+        }, depth);
+
+        lua_pushnumber(L, std::get<double>(result->data));
+        return 1;
+    }
+
+
+    int l_ButtonInternal(lua_State* L)
+    {
+        const int depth = Frame( L );
+        const char* source_identifier = lua_tostring(L, 2);
+        const char* button_name_str = lua_tostring( L, 3 );
+        
+        auto* result = ImGuiDisplay::GetResult(L, source_identifier);
+
+        if ( result == nullptr )
+            return 0;
+        
+        ImGuiDisplay::Call(L, [result, button_name = std::string(button_name_str)]{
+
+            if ( std::holds_alternative<bool>( result->data ) )
+                std::get<bool>(result->data) |= ImGui::Button(button_name.c_str());
+            else
+                result->data = ImGui::Button(button_name.c_str());
+        }, depth);
+
+        lua_pushboolean(L, std::get<bool>(result->data));
+        std::get<bool>(result->data) = false; // consume 
+        return 1;
     }
 
     int l_PlotLine( lua_State* L )
@@ -352,7 +504,7 @@ namespace LuaImGui
         ImGuiDisplay::Call( L, [
             line_name_string = std::string( line_name_str ),
             dx,
-            y_values = std::move( ReadVector( L, 4 ) )
+            y_values = std::move( ReadVector<double>( L, 4 ) )
         ] {
                 ImPlot::PlotLine( line_name_string.c_str(), y_values.data(), static_cast<int>( y_values.size() ), dx );
                 return true;
@@ -367,7 +519,7 @@ namespace LuaImGui
         const char* line_name_str = lua_tostring( L, 2 );
         ImGuiDisplay::Call( L, [
             line_name_string = std::string( line_name_str ),
-            positions = std::move(ReadVector( L, 3 ))
+            positions = std::move(ReadVector<double>( L, 3 ))
         ] {
             ImPlot::PlotVLines( line_name_string.c_str(), positions.data(), static_cast<int>( positions.size() ) );
             return true;
@@ -382,7 +534,7 @@ namespace LuaImGui
         const char* line_name_str = lua_tostring( L, 2 );
         ImGuiDisplay::Call( L, [
             line_name_string = std::string( line_name_str ),
-            positions = std::move( ReadVector( L, 3 ) )
+            positions = std::move( ReadVector<double>( L, 3 ) )
         ] {
                 ImPlot::PlotHLines( line_name_string.c_str(), positions.data(), static_cast<int>( positions.size() ) );
                 return true;
@@ -421,16 +573,21 @@ namespace LuaImGui
 
             REGISTER_FUNCTION( BeginPlot ),
             REGISTER_FUNCTION( EndPlot ),
-
+            
+            
             REGISTER_FUNCTION( PlotLine ),
             REGISTER_FUNCTION( PlotHLines ),
             REGISTER_FUNCTION( PlotVLines ),
-
+            
             // Special Control
             REGISTER_FUNCTION(Begin),
             REGISTER_FUNCTION(End),
             
             // Immediate
+            REGISTER_FUNCTION( ButtonInternal ),
+            REGISTER_FUNCTION( DragFloatInternal ),
+            REGISTER_FUNCTION( ListBoxInternal ),
+            REGISTER_FUNCTION( InputFloatInternal ),
             REGISTER_FUNCTION(Text),
             REGISTER_FUNCTION(Columns),
             REGISTER_FUNCTION(NextColumn),
