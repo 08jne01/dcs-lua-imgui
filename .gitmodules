@@ -4,9 +4,6 @@
 [submodule "ext/minhook"]
 	path = ext/minhook
 	url = https://github.com/TsudaKageyu/minhook.git
-[submodule "ext/imgui"]
-	path = ext/imgui
-	url = https://github.com/08jne01/imgui-dcs-fix.git
 [submodule "ext/implot"]
 	path = ext/implot
 	url = https://github.com/epezent/implot
