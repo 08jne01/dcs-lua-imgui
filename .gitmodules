@@ -9,4 +9,4 @@
 	url = https://github.com/epezent/implot
 [submodule "ext/imgui"]
 	path = ext/imgui
-	url = https://github.com/08jne01/imgui-dcs-fix
+	url = https://github.com/08jne01/imgui-dcs-fix.git
