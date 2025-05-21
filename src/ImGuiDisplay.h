@@ -6,8 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
-#include <future>
-#include "ThreadSafeQueue.h"
+#include <mutex>
 #include "ImGuiLog.h"
 #include "include/LuaImGui.h"
 

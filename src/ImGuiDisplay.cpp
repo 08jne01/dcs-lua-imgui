@@ -1,6 +1,7 @@
 #include "ImguiDisplay.h"
 
 #include <FmGui.hpp>
+#include <format>
 #include <functional>
 #include <imgui.h>
 #include "Fonts/Fonts.h"

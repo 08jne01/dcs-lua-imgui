@@ -59,7 +59,9 @@ add_library( LuaImGui SHARED
     ${FMGUI_SRC}
 )
 
-set_property(TARGET LuaImGui PROPERTY CXX_STANDARD 23)
+if (CMAKE_VERSION VERSION_GREATER 3.12)
+  set_property(TARGET LuaImGui PROPERTY CXX_STANDARD 23)
+endif()
 
 add_subdirectory("ext/minhook")
 
