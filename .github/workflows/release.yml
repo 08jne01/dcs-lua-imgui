@@ -2,9 +2,12 @@
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
 name: Make Release
 
-
 on:
   workflow_dispatch:
+    inputs:
+        tag:
+          description: 'Tag to build'
+          required: true
 
 jobs:
   build:
@@ -66,16 +69,13 @@ jobs:
         Move-Item -Path README.md -Destination release
         Move-Item -Path LICENSE -Destination release
         Compress-Archive -Path release -DestinationPath LuaImGui_${{ github.event.release.tag_name }}.zip
-
-    - uses: actions-ecosystem/action-get-latest-tag@v1
-      id: get-latest-tag
       
     - name: Upload binaries to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.get-latest-tag.outputs.tag }}
         files: |
-            LuaImGui_${{ github.event.release.tag_name }}.zip
+            LuaImGui_${{ github.event.inputs.tag }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
