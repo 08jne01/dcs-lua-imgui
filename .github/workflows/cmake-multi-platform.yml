@@ -21,6 +21,17 @@ jobs:
       run: Get-ChildItem "C:\Program Files\Microsoft Visual Studio"
     - name: List installed Windows SDKs
       run: dir "C:\Program Files (x86)\Windows Kits\10\Lib"
+
+    - name: Detect latest Windows SDK version
+      id: sdk
+      shell: pwsh
+      run: |
+        $sdks = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Lib" | 
+                Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
+                Sort-Object Name -Descending
+        $latest = $sdks[0].Name
+        "Latest SDK: $latest"
+        echo "sdkver=$latest" >> $env:GITHUB_OUTPUT
     
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: actions/checkout@v4
@@ -39,6 +50,7 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
         cmake --preset x64-release
+        -DCMAKE_SYSTEM_VERSION=${{ steps.sdk.outputs.sdkver }}
         -S ${{ github.workspace }}
 
     - name: Build
