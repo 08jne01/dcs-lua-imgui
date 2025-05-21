@@ -61,14 +61,14 @@ jobs:
     - name: Make Release
       shell: pwsh
       run: |
-        New-Item -ItemType Directory -Path release
-        Move-Item -Path examples -Destination release
-        Move-Item -Path ImGui.lua -Destination release
-        Move-Item -Path ImGuiStubs.lua -Destination release
-        Move-Item -Path LuaImGui.dll -Destination release
-        Move-Item -Path README.md -Destination release
-        Move-Item -Path LICENSE -Destination release
-        Compress-Archive -Path release -DestinationPath LuaImGui_${{ github.event.inputs.tag }}.zip
+        New-Item -ItemType Directory -Path LuaImGui
+        Move-Item -Path examples -Destination LuaImGui
+        Move-Item -Path ImGui.lua -Destination LuaImGui
+        Move-Item -Path ImGuiStubs.lua -Destination LuaImGui
+        Move-Item -Path LuaImGui.dll -Destination LuaImGui
+        Move-Item -Path README.md -Destination LuaImGui
+        Move-Item -Path LICENSE -Destination LuaImGui
+        Compress-Archive -Path LuaImGui -DestinationPath LuaImGui_${{ github.event.inputs.tag }}.zip
       
     - name: Upload binaries to GitHub Release
       uses: softprops/action-gh-release@v1
