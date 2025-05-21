@@ -15,6 +15,11 @@ jobs:
       fail-fast: false
       
     steps:
+    - name: Check CMake version
+      run: cmake --version
+    - name: List installed Visual Studios
+      run: Get-ChildItem "C:\Program Files\Microsoft Visual Studio"
+    
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: actions/checkout@v4
       with:
