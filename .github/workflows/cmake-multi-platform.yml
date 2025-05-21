@@ -19,6 +19,8 @@ jobs:
       run: cmake --version
     - name: List installed Visual Studios
       run: Get-ChildItem "C:\Program Files\Microsoft Visual Studio"
+    - name: List installed Windows SDKs
+      run: dir "C:\Program Files (x86)\Windows Kits\10\Lib"
     
     - uses: ilammy/msvc-dev-cmd@v1
     - uses: actions/checkout@v4
