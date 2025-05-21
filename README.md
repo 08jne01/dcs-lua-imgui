@@ -201,6 +201,57 @@ ImGui:Table({
 
 If you don't have the same number of columns as the header the empty ones will be filled with ```nil```.
 
+### Input
+
+All these inputs take a value and returns the changed value if input is made.
+
+#### Button
+
+![button image](./examples/images/button.png)
+
+```lua
+-- Only need to supply the label for the button.
+-- It will return true below the frame after the button is pressed - only one time.
+if ImGui:Button("Press This!") then
+    -- Code in here is ran once only every time a button is pressed
+    ImGui.Log("Button was Pressed!")
+end
+```
+
+#### Drag Float
+
+![button image](./examples/images/drag-float.png)
+
+```lua
+local speed = 0.1 -- speed at which the drag float which change value when dragged.
+-- optionally you can supply min and max
+value = ImGui:DragFloat("Drag Float Label", value, speed)
+```
+
+#### Input Float
+
+![button image](./examples/images/input-float.png)
+
+```lua
+local step = 0.1 -- size of step for + and - buttons
+value = ImGui:InputFloat("Input Float Label", value, step)
+```
+
+#### List Box
+
+![button image](./examples/images/list-box.png)
+
+```lua
+-- options you wish to choose from
+local options = {
+    "option-a",
+    "option-b",
+    "option-c",
+}
+-- selected option starts at 1 (like lua indices)
+selected_option = ImGui:ListBox("List Box Label", selected_option, options)
+```
+
 ### Control Statements
 
 Any ImGui functions which control flow will take a function this is because DCS is multithreaded so LuaImGui has to build a set of commands to send to the Render Thread.
@@ -221,7 +272,7 @@ function ImGui:Something(s, f)
 end
 ```
 
-Since it is easy to pass anonymous function around it makes the syntax easy and similar to normal ImGui.
+Since it is easy to pass anonymous function around it makes the syntax easy and similar to normal ImGui. See [tree below](#tree) for an example.
 
 #### Tree
 

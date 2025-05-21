@@ -9,7 +9,10 @@ package.path = package.path..";"..LockOn_Options.script_path.."?.lua"
 require("LuaImGui.ImGui")
 
 local some_state = {
-    hello = "world"
+    hello = "world",
+    drag_float = 1.0,
+    input_float = 1.0,
+    selected_option = 1,
 }
 
 -- To draw the imgui you need to add items to the imgui context 
@@ -51,7 +54,28 @@ ImGui.AddItem("Menu Name", "Menu Entry Name", function()
     -- If you don't have the same number of columns as the header the empty ones
     -- will be filled with nil.
 
+    -- Only need to supply the label for the button.
+    -- It will return true below the frame after the button is pressed.
+    if ImGui:Button("Press This!") then
+        -- Code in here is ran every time a button is pressed
+        ImGui.Log("Button was Pressed!")
+    end
 
+    local speed = 0.1
+
+    -- Returns the value if changed, so set the state to it.
+    some_state.drag_float = ImGui:DragFloat("drag float label", some_state.drag_float, speed)
+
+    -- Returns the value if changed, so set the state to it.
+    some_state.input_float = ImGui:InputFloat("input float label", some_state.input_float, speed) 
+
+    local options = {
+        "option-a",
+        "option-b",
+        "option-c",
+    }
+    -- Selected Option Starts at 1 like lua.
+    some_state.selected_option = ImGui:ListBox("list box label", some_state.selected_option, options)
 
     -- Any ImGui functions which control flow will take a function
     -- This is because DCS is multithreaded so LuaImGui has to build
