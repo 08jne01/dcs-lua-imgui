@@ -3,10 +3,8 @@
 name: CMake
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -57,8 +55,20 @@ jobs:
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       run: cmake --build ${{ github.workspace }}/out/build/x64-release
 
-    - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
+    - name: Make Release
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Path release
+        Move-Item -Path examples -Destination release
+        Move-Item -Path ImGui.lua -Destination release
+        Move-Item -Path ImGuiStubs.lua -Destination release
+        Move-Item -Path LuaImGui.dll -Destination release
+        Move-Item -Path README.md -Destination release
+        Move-Item -Path LICENSE -Destination release
+        Compress-Archive -Path release -DestinationPath release_${{ github.event.release.tag_name }}.zip
+    - name: Upload binaries to GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+            release/**
+      
