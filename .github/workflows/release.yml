@@ -6,7 +6,7 @@ name: Make Release
 on:
   workflow_dispatch:
   release:
-    types: [published]
+    types: [created]
 
 jobs:
   build:
@@ -71,6 +71,9 @@ jobs:
     - name: Upload binaries to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: v0.3
         files: |
             release/**
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
