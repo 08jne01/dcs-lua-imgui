@@ -110,11 +110,12 @@ The path includes the LuaImGui folder itself, for example the default lua_imgui_
 
 1. [Creating Windows](#creating-windows)
 2. [Immediate Drawing](#immediate-drawing)
-3. [Control Statements](#control-statements)
-4. [Enable/Disable Menu Bar](#menubar)
-5. [Console](#console)
-6. [Plotting](#plotting)
-7. [Utility](#utility)
+3. [Input](#input)
+4. [Control Statements](#control-statements)
+5. [Enable/Disable Menu Bar](#menubar)
+6. [Console](#console)
+7. [Plotting](#plotting)
+8. [Utility](#utility)
 
 ### Creating Windows
 
