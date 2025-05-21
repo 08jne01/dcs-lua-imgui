@@ -68,7 +68,7 @@ jobs:
         Move-Item -Path LuaImGui.dll -Destination release
         Move-Item -Path README.md -Destination release
         Move-Item -Path LICENSE -Destination release
-        Compress-Archive -Path release -DestinationPath LuaImGui_${{ github.event.release.tag_name }}.zip
+        Compress-Archive -Path release -DestinationPath LuaImGui_${{ github.event.inputs.tag }}.zip
       
     - name: Upload binaries to GitHub Release
       uses: softprops/action-gh-release@v1
