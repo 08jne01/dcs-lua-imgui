@@ -123,7 +123,7 @@ end
 
 function ImGui.Identifier()
     local info = debug.getinfo(3)
-    return string.format("%s : %d", tostring(info.func), info.currentline)
+    return string.format("%s : %d", tostring(info.source), info.currentline)
 end
 
 function ImGui:Plot(plot_name, x_axis_name, y_axis_name, width, f)
