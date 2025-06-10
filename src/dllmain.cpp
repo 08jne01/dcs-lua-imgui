@@ -24,6 +24,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     case DLL_THREAD_DETACH:
         break;
     case DLL_PROCESS_DETACH:
+        ImGuiDisplay::Destroy();
         break;
     }
     return TRUE;
