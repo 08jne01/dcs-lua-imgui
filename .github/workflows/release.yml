@@ -2,9 +2,12 @@
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
 name: Make Release
 
-
 on:
   workflow_dispatch:
+    inputs:
+        tag:
+          description: 'Tag to build'
+          required: true
 
 jobs:
   build:
@@ -58,24 +61,21 @@ jobs:
     - name: Make Release
       shell: pwsh
       run: |
-        New-Item -ItemType Directory -Path release
-        Move-Item -Path examples -Destination release
-        Move-Item -Path ImGui.lua -Destination release
-        Move-Item -Path ImGuiStubs.lua -Destination release
-        Move-Item -Path LuaImGui.dll -Destination release
-        Move-Item -Path README.md -Destination release
-        Move-Item -Path LICENSE -Destination release
-        Compress-Archive -Path release -DestinationPath LuaImGui_${{ github.event.release.tag_name }}.zip
-
-    - uses: actions-ecosystem/action-get-latest-tag@v1
-      id: get-latest-tag
+        New-Item -ItemType Directory -Path LuaImGui
+        Move-Item -Path examples -Destination LuaImGui
+        Move-Item -Path ImGui.lua -Destination LuaImGui
+        Move-Item -Path ImGuiStubs.lua -Destination LuaImGui
+        Move-Item -Path LuaImGui.dll -Destination LuaImGui
+        Move-Item -Path README.md -Destination LuaImGui
+        Move-Item -Path LICENSE -Destination LuaImGui
+        Compress-Archive -Path LuaImGui -DestinationPath LuaImGui_${{ github.event.inputs.tag }}.zip
       
     - name: Upload binaries to GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ steps.get-latest-tag.outputs.tag }}
+        tag_name: ${{ github.event.inputs.tag }}
         files: |
-            LuaImGui_${{ github.event.release.tag_name }}.zip
+            LuaImGui_${{ github.event.inputs.tag }}.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
