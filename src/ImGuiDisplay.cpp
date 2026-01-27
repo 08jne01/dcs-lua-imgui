@@ -215,8 +215,8 @@ void ImGuiDisplay::DrawCppImGui()
             {
                 if ( menu_item.imgui_function )
                     menu_item.imgui_function();
-                ImGui::End();
             }
+            ImGui::End();
         }
     }
 }
