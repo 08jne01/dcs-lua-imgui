@@ -12,11 +12,16 @@ namespace LuaImGui
     {
         ImGuiDisplay::AddImGuiItem( menu, name, std::move( imgui_function ) );
     }
+
+    void RegisterContext( ImGuiSetContextRoutine ctx, ImGuiSetAllocatorRoutine alloc, ImPlotSetContextRoutine plot_ctx )
+    {
+        ImGuiDisplay::InitializeContext(ctx, alloc, plot_ctx);
+    }
     
     void Create( ImGuiSetContextRoutine ctx, ImGuiSetAllocatorRoutine alloc, ImPlotSetContextRoutine plot_ctx )
     {
         ImGuiDisplay::Create();
-        ImGuiDisplay::InitializeContext( ctx, alloc, plot_ctx );
+        RegisterContext(ctx, alloc, plot_ctx);
         ImGuiDisplay::CreateHook();
     }
 
