@@ -22,5 +22,6 @@ namespace LuaImGui
     // ImGui::SetAllocatorFunctions
     // ImPlot::SetCurrentContext
     LUA_IMGUI_API void Create( ImGuiSetContextRoutine ctx, ImGuiSetAllocatorRoutine alloc, ImPlotSetContextRoutine plot_ctx );
+    LUA_IMGUI_API void RegisterContext( ImGuiSetContextRoutine ctx, ImGuiSetAllocatorRoutine alloc, ImPlotSetContextRoutine plot_ctx );
     LUA_IMGUI_API void Destroy();
 }
